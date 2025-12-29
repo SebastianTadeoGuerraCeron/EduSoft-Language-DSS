@@ -18,6 +18,8 @@ import { RecoverPassword } from './pages/public/auth/RecoverPassword';
 import { Register } from './pages/public/auth/Register';
 import { Home } from './pages/public/Home';
 import Accessibility from './pages/public/Accesibility';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const RouterProviders = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,6 +37,7 @@ const RouterProviders = () => {
 		<HashRouter>
 			<Routes>
 				<Route element={<App isAuthenticated={isAuthenticated} />}>
+					{/* Rutas públicas */}
 					<Route index element={<Home />} />
 					<Route path='accessibility' element={<Accessibility />} />
 					<Route path='about' element={<About />} />
@@ -42,21 +45,109 @@ const RouterProviders = () => {
 					<Route path='login' element={<Login />} />
 					<Route path='recover-password' element={<RecoverPassword />} />
 
-					<Route path='home' element={<HomeUser />} />
-					<Route path='progress' element={<Progress />} />
+					{/* Rutas protegidas (requieren autenticación) */}
+					<Route
+						path='home'
+						element={
+							<ProtectedRoute>
+								<HomeUser />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='progress'
+						element={
+							<ProtectedRoute>
+								<Progress />
+							</ProtectedRoute>
+						}
+					/>
 					<Route path='profile'>
-						<Route index element={<Profile />} />
-						<Route path='update' element={<UpdateProfile />} />
+						<Route
+							index
+							element={
+								<ProtectedRoute>
+									<Profile />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='update'
+							element={
+								<ProtectedRoute>
+									<UpdateProfile />
+								</ProtectedRoute>
+							}
+						/>
 					</Route>
 					<Route path='games'>
-						<Route index element={<GamesHome />} />
-						<Route path='grammar' element={<Grammar />} />
-						<Route path='vocabulary' element={<Vocabulary />} />
-						<Route path='write' element={<Write />} />
-						<Route path='read' element={<Reading />} />
-						<Route path='speak' element={<Speak />} />
-						<Route path='listen' element={<Listen />} />
+						<Route
+							index
+							element={
+								<ProtectedRoute>
+									<GamesHome />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='grammar'
+							element={
+								<ProtectedRoute>
+									<Grammar />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='vocabulary'
+							element={
+								<ProtectedRoute>
+									<Vocabulary />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='write'
+							element={
+								<ProtectedRoute>
+									<Write />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='read'
+							element={
+								<ProtectedRoute>
+									<Reading />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='speak'
+							element={
+								<ProtectedRoute>
+									<Speak />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path='listen'
+							element={
+								<ProtectedRoute>
+									<Listen />
+								</ProtectedRoute>
+							}
+						/>
 					</Route>
+
+					{/* Rutas de administración (solo ADMIN y TUTOR) */}
+					<Route
+						path='admin/dashboard'
+						element={
+							<ProtectedRoute allowedRoles={['ADMIN', 'TUTOR']}>
+								<AdminDashboard />
+							</ProtectedRoute>
+						}
+					/>
 				</Route>
 			</Routes>
 		</HashRouter>

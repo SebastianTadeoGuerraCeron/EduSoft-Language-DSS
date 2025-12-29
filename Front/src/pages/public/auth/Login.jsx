@@ -45,7 +45,8 @@ export const Login = () => {
 			const data = await res.json();
 			if (res.ok) {
 				setSuccess('Login successful!');
-				login(data.user);
+				// Actualizado para recibir token
+				login(data.user, data.token);
 				localStorage.setItem(
 					'loginSuccess',
 					`Successful login, welcome back ${data.user.username}`

@@ -5,21 +5,28 @@ import logoApp from '../../public/logo.png';
 import burgerIcon from '../assets/burger-icon.svg';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../API';
-
-const navLinks = [
-	{ to: '/home', label: 'Home' },
-	{ to: '/games', label: 'Games' },
-	{ to: '/progress', label: 'Progress' },
-	{ to: '/profile', label: 'Profile' },
-	{ to: '/about', label: 'About us/Help' },
-];
+import RoleBadge from './RoleBadge';
 
 const PrivateNavbar = () => {
-	const { user } = useAuth();
+	const { user, hasRole } = useAuth();
 	const location = useLocation();
 	const profilePicture = user?.profilePicture || 'default-profile-picture.jpg';
 
 	const [menuOpen, setMenuOpen] = useState(false);
+
+	// Links base para todos los usuarios
+	const baseLinks = [
+		{ to: '/home', label: 'Home' },
+		{ to: '/games', label: 'Games' },
+		{ to: '/progress', label: 'Progress' },
+		{ to: '/profile', label: 'Profile' },
+		{ to: '/about', label: 'About us/Help' },
+	];
+
+	// Agregar link de administración para ADMIN y TUTOR
+	const navLinks = hasRole(['ADMIN', 'TUTOR'])
+		? [...baseLinks, { to: '/admin/dashboard', label: '🔐 Admin' }]
+		: baseLinks;
 
 	// Función para verificar si el link está activo
 	const isActiveLink = (path) => {
@@ -56,17 +63,17 @@ const PrivateNavbar = () => {
 						<li key={link.to} className='h-10 flex items-center'>
 							<Link
 								to={link.to}
-								className={`relative leading-[21px] font-medium px-3 py-2 rounded-lg transition-colors duration-150 ${
-									isActiveLink(link.to)
+								className={`relative leading-[21px] font-medium px-3 py-2 rounded-lg transition-colors duration-150 ${isActiveLink(link.to)
 										? 'bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]'
 										: 'text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]'
-								}`}
+									}`}
 							>
 								{link.label}
 							</Link>
 						</li>
 					))}
-					<li className='h-10 flex items-center'>
+					<li className='h-10 flex items-center gap-2'>
+						{user?.role && <RoleBadge role={user.role} />}
 						<img
 							className='w-10 rounded-full h-10 object-cover border border-[#e6e8eb]'
 							alt='Avatar profile'
@@ -82,27 +89,26 @@ const PrivateNavbar = () => {
 
 			{/* Mobile nav */}
 			<ul
-				className={`md:hidden flex flex-col items-center gap-2 bg-white border-t border-[#e6e8eb] px-4 py-2 transition-all duration-200 ${
-					menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-				}`}
+				className={`md:hidden flex flex-col items-center gap-2 bg-white border-t border-[#e6e8eb] px-4 py-2 transition-all duration-200 ${menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+					}`}
 				aria-label='Menú de navegación'
 			>
 				{navLinks.map((link) => (
 					<li key={link.to} className='w-full'>
 						<Link
 							to={link.to}
-							className={`block w-full px-3 py-3 text-base font-medium rounded-lg transition-colors duration-150 text-center ${
-								isActiveLink(link.to)
+							className={`block w-full px-3 py-3 text-base font-medium rounded-lg transition-colors duration-150 text-center ${isActiveLink(link.to)
 									? 'bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]'
 									: 'text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]'
-							}`}
+								}`}
 							onClick={() => setMenuOpen(false)}
 						>
 							{link.label}
 						</Link>
 					</li>
 				))}
-				<li className='flex justify-center py-2'>
+				<li className='flex flex-col items-center gap-2 py-2'>
+					{user?.role && <RoleBadge role={user.role} />}
 					<img
 						className='w-10 rounded-full h-10 object-cover border border-[#e6e8eb]'
 						alt='Profile profile'

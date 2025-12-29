@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Footer } from '../../../components/Footer';
 import { Link } from 'react-router';
 import { API_URL } from '../../../API';
+import {
+	validatePasswordStrength,
+	validateEmail,
+	getPasswordStrength,
+} from '../../../utils/validation';
 
 export const Register = () => {
 	const [form, setForm] = useState({
@@ -14,6 +19,7 @@ export const Register = () => {
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 	const [fieldErrors, setFieldErrors] = useState({});
+	const [passwordStrength, setPasswordStrength] = useState({ level: 'none', label: '', color: '' });
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -24,6 +30,12 @@ export const Register = () => {
 		} else {
 			setForm({ ...form, [e.target.name]: e.target.value });
 		}
+
+		// Actualizar fortaleza de la contraseña en tiempo real
+		if (e.target.name === 'password') {
+			setPasswordStrength(getPasswordStrength(e.target.value));
+		}
+
 		setFieldErrors({ ...fieldErrors, [e.target.name]: '' });
 	};
 
@@ -33,21 +45,31 @@ export const Register = () => {
 		setSuccess('');
 		const newFieldErrors = {};
 
-		if (!form.email.trim()) newFieldErrors.email = 'Email is required';
-		if (!form.username.trim()) newFieldErrors.username = 'Username is required';
-		if (!form.password) newFieldErrors.password = 'Password is required';
-		if (!form.confirmPassword)
-			newFieldErrors.confirmPassword = 'Please confirm your password';
-		if (!form.answerSecret.trim())
-			newFieldErrors.answerSecret = 'Secret answer is required';
+		if (!form.email.trim()) {
+			newFieldErrors.email = 'Email is required';
+		} else if (!validateEmail(form.email)) {
+			newFieldErrors.email = 'Invalid email format';
+		}
 
-		if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+		if (!form.username.trim()) newFieldErrors.username = 'Username is required';
+
+		if (!form.password) {
+			newFieldErrors.password = 'Password is required';
+		} else {
+			const passwordValidation = validatePasswordStrength(form.password);
+			if (!passwordValidation.isValid) {
+				newFieldErrors.password = passwordValidation.errors.join('. ');
+			}
+		}
+
+		if (!form.confirmPassword) {
+			newFieldErrors.confirmPassword = 'Please confirm your password';
+		} else if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
 			newFieldErrors.confirmPassword = 'Passwords do not match';
 		}
 
-		if (form.password && (form.password.length < 8 || form.password.length > 15)) {
-			newFieldErrors.password = 'Password must be between 8 and 15 characters';
-		}
+		if (!form.answerSecret.trim())
+			newFieldErrors.answerSecret = 'Secret answer is required';
 
 		if (Object.keys(newFieldErrors).length > 0) {
 			setFieldErrors(newFieldErrors);
@@ -76,6 +98,7 @@ export const Register = () => {
 					confirmPassword: '',
 					answerSecret: '',
 				});
+				setPasswordStrength({ level: 'none', label: '', color: '' });
 			} else {
 				setError(data.error || 'Registration failed');
 			}
@@ -91,7 +114,7 @@ export const Register = () => {
 					<div className='w-full max-w-[960px] overflow-hidden shrink-0 flex flex-col items-center justify-start py-5 px-0 box-border'>
 						<header className='self-stretch flex flex-col items-center justify-start pt-5 px-2 md:px-4 pb-3 text-center text-2xl md:text-[28px]'>
 							<h1 className='self-stretch leading-[35px] font-bold'
-							tabIndex={0}>
+								tabIndex={0}>
 								Sign up for Edusoft
 							</h1>
 						</header>
@@ -114,7 +137,7 @@ export const Register = () => {
 							)}
 							<div className='flex flex-col items-start'>
 								<label htmlFor='email' className='leading-6 font-medium'
-								tabIndex={0}>
+									tabIndex={0}>
 									Email{' '}
 									<span className='text-red-600' aria-hidden='true'>
 										*
@@ -127,9 +150,8 @@ export const Register = () => {
 									type='email'
 									value={form.email}
 									onChange={handleChange}
-									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${
-										fieldErrors.email ? 'border-red-500' : 'border-[#d4dee3]'
-									}`}
+									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${fieldErrors.email ? 'border-red-500' : 'border-[#d4dee3]'
+										}`}
 									placeholder='student@example.com'
 									aria-invalid={!!fieldErrors.email}
 								/>
@@ -139,7 +161,7 @@ export const Register = () => {
 							</div>
 							<div className='flex flex-col items-start'>
 								<label htmlFor='username' className='leading-6 font-medium'
-								tabIndex={0}>
+									tabIndex={0}>
 									Username{' '}
 									<span className='text-red-600' aria-hidden='true'>
 										*
@@ -152,9 +174,8 @@ export const Register = () => {
 									type='text'
 									value={form.username}
 									onChange={handleChange}
-									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${
-										fieldErrors.username ? 'border-red-500' : 'border-[#d4dee3]'
-									}`}
+									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${fieldErrors.username ? 'border-red-500' : 'border-[#d4dee3]'
+										}`}
 									placeholder='john_student'
 									aria-invalid={!!fieldErrors.username}
 								/>
@@ -166,7 +187,7 @@ export const Register = () => {
 							</div>
 							<div className='flex flex-col items-start relative'>
 								<label htmlFor='password' className='leading-6 font-medium'
-								tabIndex={0}>
+									tabIndex={0}>
 									Password{' '}
 									<span className='text-red-600' aria-hidden='true'>
 										*
@@ -179,9 +200,8 @@ export const Register = () => {
 									type={showPassword ? 'text' : 'password'}
 									value={form.password}
 									onChange={handleChange}
-									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg pr-12 ${
-										fieldErrors.password ? 'border-red-500' : 'border-[#d4dee3]'
-									}`}
+									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg pr-12 ${fieldErrors.password ? 'border-red-500' : 'border-[#d4dee3]'
+										}`}
 									placeholder='123Password'
 									aria-invalid={!!fieldErrors.password}
 								/>
@@ -203,10 +223,40 @@ export const Register = () => {
 										{fieldErrors.password}
 									</span>
 								)}
+								{/* Indicador de fortaleza de contraseña */}
+								{form.password && passwordStrength.level !== 'none' && (
+									<div className='mt-2 w-full'>
+										<div className='flex items-center gap-2'>
+											<div className='flex-1 h-2 bg-gray-200 rounded-full overflow-hidden'>
+												<div
+													className={`h-full transition-all duration-300 ${passwordStrength.level === 'weak'
+															? 'w-1/3 bg-red-500'
+															: passwordStrength.level === 'medium'
+																? 'w-2/3 bg-orange-500'
+																: 'w-full bg-green-500'
+														}`}
+												/>
+											</div>
+											<span
+												className={`text-xs font-semibold ${passwordStrength.level === 'weak'
+														? 'text-red-600'
+														: passwordStrength.level === 'medium'
+															? 'text-orange-600'
+															: 'text-green-600'
+													}`}
+											>
+												{passwordStrength.label}
+											</span>
+										</div>
+										<p className='text-xs text-gray-600 mt-1'>
+											Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número
+										</p>
+									</div>
+								)}
 							</div>
 							<div className='flex flex-col items-start relative'>
 								<label htmlFor='confirmPassword' className='leading-6 font-medium'
-								tabIndex={0}>
+									tabIndex={0}>
 									Confirm Password{' '}
 									<span className='text-red-600' aria-hidden='true'>
 										*
@@ -219,9 +269,8 @@ export const Register = () => {
 									type={showConfirmPassword ? 'text' : 'password'}
 									value={form.confirmPassword}
 									onChange={handleChange}
-									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg pr-12 ${
-										fieldErrors.confirmPassword ? 'border-red-500' : 'border-[#d4dee3]'
-									}`}
+									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg pr-12 ${fieldErrors.confirmPassword ? 'border-red-500' : 'border-[#d4dee3]'
+										}`}
 									placeholder='123Password'
 									aria-invalid={!!fieldErrors.confirmPassword}
 								/>
@@ -246,7 +295,7 @@ export const Register = () => {
 							</div>
 							<div className='flex flex-col items-start'>
 								<label htmlFor='answerSecret' className='leading-6 font-medium'
-								tabIndex={0}>
+									tabIndex={0}>
 									Secret Answer (for password recovery){' '}
 									<span className='text-red-600' aria-hidden='true'>
 										*
@@ -259,9 +308,8 @@ export const Register = () => {
 									type='text'
 									value={form.answerSecret}
 									onChange={handleChange}
-									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${
-										fieldErrors.answerSecret ? 'border-red-500' : 'border-[#d4dee3]'
-									}`}
+									className={`self-stretch rounded-xl bg-[#fafafa] border-solid border-[1px] box-border h-12 md:h-14 p-3 md:p-[15px] text-[#4C7490] text-base md:text-lg ${fieldErrors.answerSecret ? 'border-red-500' : 'border-[#d4dee3]'
+										}`}
 									placeholder='Your mother maiden name'
 									aria-invalid={!!fieldErrors.answerSecret}
 								/>

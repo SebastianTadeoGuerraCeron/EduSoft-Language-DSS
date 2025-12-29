@@ -8,12 +8,20 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  ADMIN
+  TUTOR
+  STUDENT_PRO
+  STUDENT_FREE
+}
+
 model User {
   id             String        @id @default(cuid())
   email          String        @unique
   username       String
   password       String
   answerSecret   String
+  role           Role          @default(STUDENT_FREE)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   profilePicture String        @default("default-profile-picture.jpg")
