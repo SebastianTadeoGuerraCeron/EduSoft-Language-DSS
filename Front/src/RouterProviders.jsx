@@ -20,6 +20,9 @@ import { Home } from './pages/public/Home';
 import Accessibility from './pages/public/Accesibility';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import LessonCreation from './components/LessonCreation';
+import TutorLessonsWrapper from './components/TutorLessonsWrapper';
+import StudentLessons from './components/StudentLessons';
 
 const RouterProviders = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -145,6 +148,34 @@ const RouterProviders = () => {
 						element={
 							<ProtectedRoute allowedRoles={['ADMIN', 'TUTOR']}>
 								<AdminDashboard />
+							</ProtectedRoute>
+						}
+					/>
+
+					{/* Rutas de Lecciones - TUTOR */}
+					<Route
+						path='tutor/create-lesson'
+						element={
+							<ProtectedRoute allowedRoles={['TUTOR']}>
+								<LessonCreation />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='tutor/lessons'
+						element={
+							<ProtectedRoute allowedRoles={['TUTOR']}>
+								<TutorLessonsWrapper />
+							</ProtectedRoute>
+						}
+					/>
+
+					{/* Rutas de Lecciones - STUDENT */}
+					<Route
+						path='student/lessons'
+						element={
+							<ProtectedRoute allowedRoles={['STUDENT_PRO', 'STUDENT_FREE']}>
+								<StudentLessons />
 							</ProtectedRoute>
 						}
 					/>

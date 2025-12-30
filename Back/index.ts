@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { routerUser } from "./src/routes/user";
+import { routerLesson } from "./src/routes/lesson";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -41,6 +42,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use("/user", routerUser);
+app.use("/lessons", routerLesson);
 
 app.use("/profile-pictures", express.static("public/profile-pictures"));
 

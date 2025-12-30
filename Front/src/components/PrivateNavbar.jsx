@@ -23,10 +23,29 @@ const PrivateNavbar = () => {
 		{ to: '/about', label: 'About us/Help' },
 	];
 
-	// Agregar link de administración para ADMIN y TUTOR
-	const navLinks = hasRole(['ADMIN', 'TUTOR'])
-		? [...baseLinks, { to: '/admin/dashboard', label: '🔐 Admin' }]
-		: baseLinks;
+	// Agregar links según el rol
+	let navLinks = baseLinks;
+	
+	// Si es TUTOR, agregar links de lecciones
+	if (hasRole(['TUTOR'])) {
+		navLinks = [
+			...baseLinks,
+			{ to: '/tutor/create-lesson', label: '✏️ Create Lesson' },
+			{ to: '/tutor/lessons', label: '📚 My Lessons' },
+			{ to: '/admin/dashboard', label: '🔐 Admin' }
+		];
+	}
+	// Si es STUDENT, agregar link de "My Learning"
+	else if (hasRole(['STUDENT_PRO', 'STUDENT_FREE'])) {
+		navLinks = [
+			...baseLinks,
+			{ to: '/student/lessons', label: '📖 My Learning' }
+		];
+	}
+	// Si es ADMIN, agregar solo Admin
+	else if (hasRole(['ADMIN'])) {
+		navLinks = [...baseLinks, { to: '/admin/dashboard', label: '🔐 Admin' }];
+	}
 
 	// Función para verificar si el link está activo
 	const isActiveLink = (path) => {

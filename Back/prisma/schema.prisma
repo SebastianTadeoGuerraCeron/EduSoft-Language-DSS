@@ -16,16 +16,19 @@ enum Role {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  username       String
-  password       String
-  answerSecret   String
-  role           Role          @default(STUDENT_FREE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  profilePicture String        @default("default-profile-picture.jpg")
-  gameHistory    GameHistory[]
+  id                  String              @id @default(cuid())
+  email               String              @unique
+  username            String
+  password            String
+  answerSecret        String
+  role                Role                @default(STUDENT_FREE)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  profilePicture      String              @default("default-profile-picture.jpg")
+  gameHistory         GameHistory[]
+  lessonsCreated      Lesson[]            @relation("LessonCreator")
+  lessonAssignments   LessonAssignment[]  @relation("LessonAssignments")
+  lessonProgress      LessonProgress[]    @relation("LessonProgress")
 }
 
 model GameHistory {
@@ -35,4 +38,74 @@ model GameHistory {
   score    Int
   playedAt DateTime @default(now())
   user     User     @relation(fields: [userId], references: [id])
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+}
+
+enum LessonLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Lesson {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  type        LessonType     @default(TEXT)
+  level       LessonLevel    @default(BEGINNER)
+  isPremium   Boolean        @default(false)
+  content     String?
+  miniatura   String?
+  duration    Int?           // en minutos
+  createdBy   String
+  tutor       User           @relation("LessonCreator", fields: [createdBy], references: [id])
+  modules     LessonModule[]
+  assignments LessonAssignment[]
+  progress    LessonProgress[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model LessonModule {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  titulo    String
+  contenido String
+  orden     Int      // 1-5 máximo
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lessonId, orden])
+}
+
+model LessonAssignment {
+  id         String   @id @default(cuid())
+  lessonId   String
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("LessonAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([lessonId, userId])
+}
+
+model LessonProgress {
+  id             String   @id @default(cuid())
+  lessonId       String
+  lesson         Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation("LessonProgress", fields: [userId], references: [id], onDelete: Cascade)
+  percentage     Int      @default(0)
+  status         String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  modulosVistos  Int      @default(0)
+  lastAccessAt   DateTime @default(now())
+  completedAt    DateTime?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([lessonId, userId])
 }

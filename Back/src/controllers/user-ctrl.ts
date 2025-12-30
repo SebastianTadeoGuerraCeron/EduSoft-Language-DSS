@@ -9,7 +9,6 @@ import {
   isStrongPassword,
   sanitizeInput,
 } from "../utils/security";
-import type { AuthRequest } from "../middleware/auth";
 
 const prisma = new PrismaClient();
 
