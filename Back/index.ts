@@ -1,8 +1,9 @@
-import express, { type Request, type Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { routerUser } from "./src/routes/user";
+import express, { type Request, type Response } from "express";
+import { routerExam } from "./src/routes/exam";
 import { routerLesson } from "./src/routes/lesson";
+import { routerUser } from "./src/routes/user";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -43,6 +44,7 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use("/user", routerUser);
 app.use("/lessons", routerLesson);
+app.use("/exams", routerExam);
 
 app.use("/profile-pictures", express.static("public/profile-pictures"));
 

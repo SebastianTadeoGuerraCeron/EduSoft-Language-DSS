@@ -29,6 +29,8 @@ model User {
   lessonsCreated      Lesson[]            @relation("LessonCreator")
   lessonAssignments   LessonAssignment[]  @relation("LessonAssignments")
   lessonProgress      LessonProgress[]    @relation("LessonProgress")
+  examsCreated        Exam[]              @relation("ExamCreator")
+  examAttempts        ExamAttempt[]       @relation("ExamAttempts")
 }
 
 model GameHistory {
@@ -66,6 +68,7 @@ model Lesson {
   modules     LessonModule[]
   assignments LessonAssignment[]
   progress    LessonProgress[]
+  exams       Exam[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }
@@ -108,4 +111,81 @@ model LessonProgress {
   updatedAt      DateTime @updatedAt
 
   @@unique([lessonId, userId])
+}
+
+// ========== SISTEMA DE EXÁMENES ==========
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  FILL_BLANK
+}
+
+enum ExamAttemptStatus {
+  IN_PROGRESS
+  FINISHED
+  ABANDONED
+}
+
+model Exam {
+  id                  String         @id @default(cuid())
+  title               String
+  description         String
+  lessonId            String
+  lesson              Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isPremium           Boolean        @default(false)
+  timeLimit           Int            // en minutos
+  passingPercentage   Int            @default(60) // porcentaje para aprobar
+  createdBy           String
+  tutor               User           @relation("ExamCreator", fields: [createdBy], references: [id])
+  questions           Question[]
+  attempts            ExamAttempt[]
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model Question {
+  id              String       @id @default(cuid())
+  examId          String
+  exam            Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  text            String
+  type            QuestionType @default(MULTIPLE_CHOICE)
+  options         Json?        // Array de opciones para MULTIPLE_CHOICE
+  correctAnswer   String       // Respuesta correcta
+  points          Int          @default(1)
+  order           Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([examId, order])
+}
+
+model ExamAttempt {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation("ExamAttempts", fields: [userId], references: [id], onDelete: Cascade)
+  examId       String
+  exam         Exam              @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers      Json?             // { questionId: userAnswer }
+  score        Float?            // puntaje obtenido (porcentaje)
+  totalPoints  Int?              // puntos totales obtenidos
+  maxPoints    Int?              // puntos máximos posibles
+  status       ExamAttemptStatus @default(IN_PROGRESS)
+  startedAt    DateTime          @default(now())
+  finishedAt   DateTime?
+  timeTaken    Int?              // tiempo tomado en segundos
+  auditLogs    ExamAuditLog[]
+
+  @@unique([userId, examId, startedAt])
+}
+
+model ExamAuditLog {
+  id           String      @id @default(cuid())
+  attemptId    String
+  attempt      ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  activityType String      // tab_switch, window_blur, copy_paste, etc.
+  details      Json?       // detalles adicionales
+  timestamp    DateTime    @default(now())
 }
