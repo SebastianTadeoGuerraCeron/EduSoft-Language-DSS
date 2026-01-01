@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { ConfirmationModal } from "../../components/ConfirmationModal";
 import { useAuth } from "../../context/AuthContext";
 import {
   getExamById,
@@ -25,6 +26,7 @@ export default function TakeExam() {
   const [error, setError] = useState("");
   const [showInstructions, setShowInstructions] = useState(true);
   const [startTime, setStartTime] = useState(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const timerRef = useRef(null);
   const attemptRef = useRef(null);
@@ -155,15 +157,19 @@ export default function TakeExam() {
 
   // Submit exam
   const handleSubmit = async (autoSubmit = false) => {
-    if (
-      !autoSubmit &&
-      !window.confirm("Are you sure you want to submit the exam?")
-    ) {
+    // If not auto-submit, show modal first
+    if (!autoSubmit) {
+      setShowSubmitModal(true);
       return;
     }
 
+    await executeSubmit();
+  };
+
+  const executeSubmit = async () => {
     try {
       setSubmitting(true);
+      setShowSubmitModal(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -426,6 +432,17 @@ export default function TakeExam() {
           )}
         </div>
       </div>
+
+      {/* Submit Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showSubmitModal}
+        title="Submit Exam"
+        message="Are you sure you want to submit the exam? You won't be able to change your answers after submitting."
+        confirmText={submitting ? "Submitting..." : "Submit"}
+        cancelText="Continue Exam"
+        onConfirm={executeSubmit}
+        onCancel={() => setShowSubmitModal(false)}
+      />
     </div>
   );
 }

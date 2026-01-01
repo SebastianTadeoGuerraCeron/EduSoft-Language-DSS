@@ -146,6 +146,21 @@ export const deleteExam = async (examId) => {
   }
 };
 
+/**
+ * Actualizar un examen (solo TUTOR creador)
+ * @param {string} examId - ID del examen
+ * @param {Object} examData - Datos del examen
+ */
+export const updateExam = async (examId, examData) => {
+  try {
+    const response = await api.put(`/exams/${examId}`, examData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating exam:", error);
+    throw error;
+  }
+};
+
 // ===== Servicios para TUTORES =====
 
 /**

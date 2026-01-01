@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { ConfirmationModal } from "../../components/ConfirmationModal";
 import { useAuth } from "../../context/AuthContext";
-import { getAllExams } from "../../services/examService";
+import { deleteExam, getAllExams } from "../../services/examService";
 import "../../styles/Exams.css";
 
 export default function ExamsList() {
@@ -12,6 +13,9 @@ export default function ExamsList() {
   const [error, setError] = useState("");
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [examToDelete, setExamToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Filters
   const [lessonFilter, setLessonFilter] = useState("");
@@ -42,6 +46,33 @@ export default function ExamsList() {
       return;
     }
     navigate(`/exams/${exam.id}`);
+  };
+
+  const handleDeleteClick = (exam) => {
+    setExamToDelete(exam);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!examToDelete) return;
+
+    try {
+      setDeleting(true);
+      await deleteExam(examToDelete.id);
+      setExams((prev) => prev.filter((e) => e.id !== examToDelete.id));
+      setShowDeleteModal(false);
+      setExamToDelete(null);
+    } catch (err) {
+      setError("Error deleting exam");
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Check if the current user is the owner of the exam
+  const isExamOwner = (exam) => {
+    return hasRole(["TUTOR"]) && exam.tutor?.id === user?.id;
   };
 
   const filteredExams = exams.filter((exam) => {
@@ -144,13 +175,43 @@ export default function ExamsList() {
                 </div>
 
                 <div className="exam-card-actions">
-                  <button
-                    className="btn-primary"
-                    onClick={() => handleExamClick(exam)}
-                    disabled={isLocked}
-                  >
-                    {isLocked ? "🔒 Requires PRO" : "Start Exam"}
-                  </button>
+                  {isExamOwner(exam) ? (
+                    // Tutor actions for their own exams
+                    <>
+                      <button
+                        className="btn-secondary"
+                        onClick={() =>
+                          navigate(`/tutor/exams/${exam.id}/preview`)
+                        }
+                        title="Preview Exam"
+                      >
+                        👁️ Preview
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => navigate(`/tutor/exams/${exam.id}/edit`)}
+                        title="Edit Exam"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        className="btn-danger"
+                        onClick={() => handleDeleteClick(exam)}
+                        title="Delete Exam"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </>
+                  ) : (
+                    // Student actions
+                    <button
+                      className="btn-primary"
+                      onClick={() => handleExamClick(exam)}
+                      disabled={isLocked}
+                    >
+                      {isLocked ? "🔒 Requires PRO" : "Start Exam"}
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -166,6 +227,20 @@ export default function ExamsList() {
           </Link>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Exam"
+        message={`Are you sure you want to delete "${examToDelete?.title}"? This action cannot be undone.`}
+        confirmText={deleting ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setExamToDelete(null);
+        }}
+      />
 
       {/* Premium Modal */}
       {showPremiumModal && (

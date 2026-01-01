@@ -12,6 +12,7 @@ import {
     getUserAttemptsCtrl,
     startExamCtrl,
     submitExamCtrl,
+    updateExamCtrl,
 } from "../controllers/exam-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
@@ -144,6 +145,17 @@ routerExam.delete(
   authenticate as express.RequestHandler,
   authorize("TUTOR") as express.RequestHandler,
   deleteExamCtrl as express.RequestHandler
+);
+
+/**
+ * PUT /exams/:id
+ * Actualizar un examen (solo el tutor creador)
+ */
+routerExam.put(
+  "/:id",
+  authenticate as express.RequestHandler,
+  authorize("TUTOR") as express.RequestHandler,
+  updateExamCtrl as express.RequestHandler
 );
 
 export { routerExam };

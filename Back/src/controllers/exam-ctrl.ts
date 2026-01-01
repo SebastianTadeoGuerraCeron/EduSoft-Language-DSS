@@ -121,6 +121,107 @@ export const createExamCtrl = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Actualizar un examen (solo el tutor creador)
+ * PUT /exams/:id
+ */
+export const updateExamCtrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+    const {
+      title,
+      description,
+      isPremium,
+      timeLimit,
+      passingPercentage,
+      questions,
+    } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    // Verificar que el examen existe y pertenece al tutor
+    const existingExam = await prisma.exam.findUnique({
+      where: { id },
+      select: { createdBy: true },
+    });
+
+    if (!existingExam) {
+      res.status(404).json({ error: "Exam not found" });
+      return;
+    }
+
+    if (existingExam.createdBy !== userId) {
+      res.status(403).json({ error: "You can only update your own exams" });
+      return;
+    }
+
+    // Validar campos requeridos
+    if (!title || !timeLimit) {
+      res.status(400).json({ error: "Title and timeLimit are required" });
+      return;
+    }
+
+    // Validar que haya al menos una pregunta
+    if (!questions || questions.length === 0) {
+      res.status(400).json({ error: "At least one question is required" });
+      return;
+    }
+
+    // Actualizar en una transacción: eliminar preguntas antiguas y crear nuevas
+    const exam = await prisma.$transaction(async (tx) => {
+      // Eliminar preguntas existentes
+      await tx.question.deleteMany({
+        where: { examId: id },
+      });
+
+      // Actualizar el examen y crear nuevas preguntas
+      return tx.exam.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          isPremium: isPremium || false,
+          timeLimit: parseInt(timeLimit, 10),
+          passingPercentage: passingPercentage || 60,
+          questions: {
+            create: questions.map((q: any, idx: number) => ({
+              text: q.text,
+              type: q.type || "MULTIPLE_CHOICE",
+              options: q.options || null,
+              correctAnswer: q.correctAnswer,
+              points: q.points || 1,
+              order: idx + 1,
+            })),
+          },
+        },
+        include: {
+          questions: {
+            orderBy: { order: "asc" },
+          },
+          lesson: {
+            select: { id: true, title: true },
+          },
+          tutor: {
+            select: { id: true, username: true },
+          },
+        },
+      });
+    });
+
+    res.json({ exam });
+  } catch (error) {
+    console.error("Error updating exam:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      details: (error as any).message,
+    });
+  }
+};
+
+/**
  * Obtener lecciones del tutor para dropdown
  * GET /tutor/lessons
  */

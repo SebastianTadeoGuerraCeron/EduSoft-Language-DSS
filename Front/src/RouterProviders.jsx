@@ -25,6 +25,8 @@ import { Register } from "./pages/public/auth/Register";
 import { Home } from "./pages/public/Home";
 // Exams imports
 import ExamCreate from "./pages/exams/ExamCreate";
+import ExamEdit from "./pages/exams/ExamEdit";
+import ExamPreview from "./pages/exams/ExamPreview";
 import ExamResults from "./pages/exams/ExamResults";
 import ExamsList from "./pages/exams/ExamsList";
 import TakeExam from "./pages/exams/TakeExam";
@@ -215,6 +217,22 @@ const RouterProviders = () => {
             element={
               <ProtectedRoute allowedRoles={["TUTOR"]}>
                 <ExamCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="tutor/exams/:id/edit"
+            element={
+              <ProtectedRoute allowedRoles={["TUTOR"]}>
+                <ExamEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="tutor/exams/:id/preview"
+            element={
+              <ProtectedRoute allowedRoles={["TUTOR"]}>
+                <ExamPreview />
               </ProtectedRoute>
             }
           />
