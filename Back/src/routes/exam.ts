@@ -90,9 +90,11 @@ routerExam.get(
 /**
  * GET /exams
  * Obtener todos los exámenes (con filtros opcionales)
+ * Requiere autenticación para filtrar por lecciones asignadas
  */
 routerExam.get(
   "/",
+  authenticate as express.RequestHandler,
   getAllExamsCtrl as express.RequestHandler
 );
 

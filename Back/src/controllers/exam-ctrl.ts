@@ -344,10 +344,13 @@ export const getTutorStatsCtrl = async (req: AuthRequest, res: Response) => {
 /**
  * Obtener todos los exámenes (con filtros)
  * GET /exams
+ * Para estudiantes: solo exámenes de lecciones asignadas
  */
 export const getAllExamsCtrl = async (req: AuthRequest, res: Response) => {
   try {
     const { lessonId, isPremium } = req.query;
+    const userId = req.userId;
+    const userRole = req.userRole;
 
     const where: any = { isActive: true };
 
@@ -357,6 +360,26 @@ export const getAllExamsCtrl = async (req: AuthRequest, res: Response) => {
 
     if (isPremium !== undefined) {
       where.isPremium = isPremium === "true";
+    }
+
+    // Si es estudiante, filtrar solo exámenes de lecciones asignadas
+    if (userRole === "STUDENT_FREE" || userRole === "STUDENT_PRO") {
+      // Obtener IDs de lecciones asignadas al estudiante
+      const assignedLessons = await prisma.lessonAssignment.findMany({
+        where: { userId: userId },
+        select: { lessonId: true },
+      });
+
+      const assignedLessonIds = assignedLessons.map((a) => a.lessonId);
+
+      // Si no tiene lecciones asignadas, retornar lista vacía
+      if (assignedLessonIds.length === 0) {
+        res.json({ exams: [] });
+        return;
+      }
+
+      // Filtrar exámenes solo de lecciones asignadas
+      where.lessonId = { in: assignedLessonIds };
     }
 
     const exams = await prisma.exam.findMany({
