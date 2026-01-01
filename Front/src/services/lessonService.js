@@ -68,13 +68,11 @@ export const deleteLesson = async (id) => {
 };
 
 /**
- * Obtener candidatos para asignación (filtrados por tipo de suscripción)
+ * Obtener candidatos para asignación (todos los estudiantes)
  */
-export const getLessonCandidates = async (type) => {
+export const getLessonCandidates = async () => {
   try {
-    const response = await api.get("/lessons/candidates", {
-      params: { type },
-    });
+    const response = await api.get("/lessons/candidates");
     return response.data;
   } catch (error) {
     console.error("Error fetching candidates:", error);

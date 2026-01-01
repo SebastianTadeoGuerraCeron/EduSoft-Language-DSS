@@ -1,5 +1,9 @@
-import { useState, useEffect } from "react";
-import { getLessonById, getLessonCandidates, assignLesson } from "../services/lessonService";
+import { useEffect, useState } from "react";
+import {
+  assignLesson,
+  getLessonById,
+  getLessonCandidates,
+} from "../services/lessonService";
 import "../styles/LessonAssignment.css";
 
 export default function LessonAssignment({ lessonId, onAssignmentComplete }) {
@@ -21,9 +25,8 @@ export default function LessonAssignment({ lessonId, onAssignmentComplete }) {
         const lessonData = await getLessonById(lessonId);
         setLesson(lessonData.lesson);
 
-        // Obtener candidatos según el tipo de lección
-        const type = lessonData.lesson.isPremium ? "PRO" : "FREE";
-        const candidatesData = await getLessonCandidates(type);
+        // Obtener todos los estudiantes candidatos
+        const candidatesData = await getLessonCandidates();
         setCandidates(candidatesData.candidates);
       } catch (err) {
         setError(err.response?.data?.error || "Error loading assignment data");
@@ -104,14 +107,9 @@ export default function LessonAssignment({ lessonId, onAssignmentComplete }) {
       <div className="assignment-content">
         <div className="candidates-section">
           <div className="candidates-header">
-            <h3>
-              Available Students ({candidates.length})
-            </h3>
+            <h3>Available Students ({candidates.length})</h3>
             {candidates.length > 0 && (
-              <button
-                className="btn-select-all"
-                onClick={handleSelectAll}
-              >
+              <button className="btn-select-all" onClick={handleSelectAll}>
                 {selectedStudents.length === candidates.length
                   ? "Deselect All"
                   : "Select All"}

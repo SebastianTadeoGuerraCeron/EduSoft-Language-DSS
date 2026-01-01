@@ -304,3 +304,85 @@
     margin: 1rem 1rem 1.5rem 1rem;
   }
 }
+
+/* ===== Locked Lesson Styles ===== */
+.lesson-card.locked {
+  position: relative;
+  opacity: 0.85;
+  border-color: #f59e0b;
+}
+
+.lesson-card.locked::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.1));
+  pointer-events: none;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+.lesson-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.locked-badge {
+  display: flex;
+  align-items: center;
+  color: #d97706;
+  font-size: 1rem;
+}
+
+.locked-overlay {
+  position: relative;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  padding: 1.5rem;
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 8px;
+  border: 2px dashed #f59e0b;
+  z-index: 2;
+}
+
+.locked-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.locked-message .lock-icon {
+  font-size: 2rem;
+}
+
+.locked-message p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0;
+}
+
+.locked-message .upgrade-hint {
+  font-size: 0.85rem;
+  color: #b45309;
+}
+
+.btn-locked {
+  display: block;
+  width: calc(100% - 2rem);
+  margin: 1rem auto 1.5rem auto;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #78350f;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.9;
+}

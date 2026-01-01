@@ -279,29 +279,15 @@ export const deleteLessonCtrl = async (req: AuthRequest, res: Response) => {
 };
 
 /**
- * Obtener estudiantes candidatos para asignación (filtrados por tipo de suscripción)
- * GET /lessons/candidates?type=PRO|FREE
+ * Obtener estudiantes candidatos para asignación (todos los estudiantes)
+ * GET /lessons/candidates
  */
 export const getLessonCandidatesCtrl = async (req: AuthRequest, res: Response) => {
   try {
-    const { type } = req.query;
-
-    if (!type || (type !== "PRO" && type !== "FREE")) {
-      res.status(400).json({ error: "Invalid or missing type parameter (PRO|FREE)" });
-      return;
-    }
-
-    let roleFilter: ("STUDENT_PRO" | "STUDENT_FREE")[];
-    if (type === "PRO") {
-      roleFilter = ["STUDENT_PRO"];
-    } else {
-      roleFilter = ["STUDENT_FREE"];
-    }
-
     const candidates = await prisma.user.findMany({
       where: {
         role: {
-          in: roleFilter,
+          in: ["STUDENT_PRO", "STUDENT_FREE"],
         },
       },
       select: {
@@ -349,18 +335,17 @@ export const assignLessonCtrl = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Filtrar usuarios según el tipo de suscripción de la lección
-    const targetRole = lesson.isPremium ? "STUDENT_PRO" : "STUDENT_FREE";
+    // Validar que los usuarios existen y son estudiantes (cualquier tipo)
     const validUsers = await prisma.user.findMany({
       where: {
         id: { in: userIds },
-        role: targetRole,
+        role: { in: ["STUDENT_PRO", "STUDENT_FREE"] },
       },
       select: { id: true },
     });
 
     if (validUsers.length === 0) {
-      res.status(400).json({ error: "No valid users found for this lesson type" });
+      res.status(400).json({ error: "No valid students found" });
       return;
     }
 
