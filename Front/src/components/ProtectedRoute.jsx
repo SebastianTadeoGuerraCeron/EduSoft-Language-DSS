@@ -7,7 +7,23 @@ import { useAuth } from '../context/AuthContext';
  * @param {string|string[]} allowedRoles - Rol o array de roles permitidos (opcional)
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
-    const { isAuthenticated, hasRole } = useAuth();
+    const { isAuthenticated, isLoading, hasRole } = useAuth();
+
+    // Mostrar loading mientras se verifica la autenticación
+    if (isLoading) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '100vh',
+                fontSize: '18px',
+                color: '#666'
+            }}>
+                Loading...
+            </div>
+        );
+    }
 
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {

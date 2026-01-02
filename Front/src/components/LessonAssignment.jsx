@@ -91,20 +91,21 @@ export default function LessonAssignment({ lessonId, onAssignmentComplete }) {
 
   return (
     <div className="lesson-assignment-container">
-      <div className="assignment-header">
-        <h2>Assign Lesson: {lesson.title}</h2>
-        <div className="lesson-info">
-          <span className={`badge ${lesson.isPremium ? "premium" : "free"}`}>
-            {lesson.isPremium ? "PRO" : "FREE"}
-          </span>
-          <span className="level-badge">{lesson.level}</span>
+      <div className="assignment-scrollable">
+        <div className="assignment-header">
+          <h2>Assign Lesson: {lesson.title}</h2>
+          <div className="lesson-info">
+            <span className={`badge ${lesson.isPremium ? "premium" : "free"}`}>
+              {lesson.isPremium ? "PRO" : "FREE"}
+            </span>
+            <span className="level-badge">{lesson.level}</span>
+          </div>
         </div>
-      </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
+        {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="assignment-content">
+        <div className="assignment-content">
         <div className="candidates-section">
           <div className="candidates-header">
             <h3>Available Students ({candidates.length})</h3>
@@ -159,6 +160,7 @@ export default function LessonAssignment({ lessonId, onAssignmentComplete }) {
             <span className="stat-value">{selectedStudents.length}</span>
           </div>
         </div>
+      </div>
       </div>
 
       <div className="assignment-actions">

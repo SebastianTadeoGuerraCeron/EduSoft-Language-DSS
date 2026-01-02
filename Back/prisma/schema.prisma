@@ -31,6 +31,8 @@ model User {
   lessonProgress      LessonProgress[]    @relation("LessonProgress")
   examsCreated        Exam[]              @relation("ExamCreator")
   examAttempts        ExamAttempt[]       @relation("ExamAttempts")
+  subscription        Subscription?
+  payments            Payment[]
 }
 
 model GameHistory {
@@ -188,4 +190,60 @@ model ExamAuditLog {
   activityType String      // tab_switch, window_blur, copy_paste, etc.
   details      Json?       // detalles adicionales
   timestamp    DateTime    @default(now())
+}
+
+// ========== SISTEMA DE SUSCRIPCIÓN Y BILLING ==========
+
+enum SubscriptionPlan {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  PAST_DUE
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan   @default(MONTHLY)
+  status          SubscriptionStatus @default(PENDING)
+  stripeCustomerId    String?        // ID del cliente en Stripe
+  stripeSubscriptionId String?       // ID de la suscripción en Stripe
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  autoRenewal     Boolean            @default(true)
+  canceledAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  payments        Payment[]
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  amount          Float         // Monto en centavos
+  currency        String        @default("USD")
+  status          PaymentStatus @default(PENDING)
+  stripePaymentIntentId String? // ID del PaymentIntent en Stripe
+  transactionId   String?       @unique // ID único de transacción
+  integrityHash   String?       // Hash SHA-256 para verificar integridad (HU07)
+  description     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

@@ -325,9 +325,49 @@ const sendEmailCtrl = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Obtener información del usuario autenticado
+ * GET /auth/me
+ */
+import type { AuthRequest } from "../middleware/auth";
+
+const getMeCtrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        profilePicture: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error("Error getting user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export {
   addGameHistory,
   createUserCtrl,
+  getMeCtrl,
   getUserProgress,
   getUserRanking,
   loginUserCtrl,

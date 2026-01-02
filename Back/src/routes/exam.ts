@@ -16,6 +16,7 @@ import {
 } from "../controllers/exam-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
+import { checkExamPremiumAccess, markPremiumContent } from "../middleware/checkPremiumAccess";
 
 const routerExam = express.Router();
 
@@ -111,10 +112,13 @@ routerExam.get(
 /**
  * POST /exams/:id/start
  * Iniciar un intento de examen
+ * Incluye validación de acceso premium (HU05)
  */
 routerExam.post(
   "/:id/start",
   authenticate as express.RequestHandler,
+  markPremiumContent as express.RequestHandler,
+  checkExamPremiumAccess as express.RequestHandler,
   startExamCtrl as express.RequestHandler
 );
 

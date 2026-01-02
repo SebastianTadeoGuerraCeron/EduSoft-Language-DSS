@@ -183,6 +183,28 @@ export const Profile = () => {
 												Log Out
 											</button>
 										</div>
+										<div className='flex flex-row gap-2'>
+											{user?.role === 'STUDENT_PRO' && (
+												<Link
+													to='/billing/subscription'
+													className='rounded-[20px] bg-purple-100 hover:bg-purple-200 h-10 flex items-center justify-center px-4 min-w-[84px] max-w-[180px] font-medium focus:outline-2 focus:outline-purple-400 transition-colors duration-150'
+													tabIndex={0}
+													title='Manage your subscription'
+												>
+													Manage Subscription
+												</Link>
+											)}
+											{user?.role === 'STUDENT_FREE' && (
+												<Link
+													to='/billing/pricing'
+													className='rounded-[20px] bg-gradient-to-r from-purple-500 to-purple-600 text-white h-10 flex items-center justify-center px-4 min-w-[84px] max-w-[180px] font-medium focus:outline-2 focus:outline-purple-400 hover:from-purple-600 hover:to-purple-700 transition-all duration-150'
+													tabIndex={0}
+													title='Upgrade to Premium'
+												>
+													Upgrade to Pro
+												</Link>
+											)}
+										</div>
 										<FontControls />
 									</nav>
 								</div>

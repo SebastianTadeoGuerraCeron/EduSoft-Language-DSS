@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../API";
 import { getUserAttempts } from "../services/examService";
 
@@ -6,18 +8,19 @@ export const Progress = () => {
   const [progress, setProgress] = useState({ history: [] });
   const [examStats, setExamStats] = useState({ attempts: [], stats: {} });
   const [loadingExams, setLoadingExams] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (!user || !user.id) return;
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!storedUser || !storedUser.id) return;
 
     // Cargar historial de juegos
-    fetch(`${API_URL}/user/progress?userId=${user.id}`)
+    fetch(`${API_URL}/user/progress?userId=${storedUser.id}`)
       .then((res) => res.json())
       .then((data) => setProgress({ history: data.history || [] }));
 
     // Cargar historial de exámenes
-    fetchExamStats(user.id);
+    fetchExamStats(storedUser.id);
   }, []);
 
   const fetchExamStats = async (userId) => {
@@ -112,6 +115,44 @@ export const Progress = () => {
                   tips to helper you improve even more.
                 </p>
               </div>
+
+              {/* Subscription Status Card */}
+              <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${user?.role === 'STUDENT_PRO' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {user?.role === 'STUDENT_PRO' ? 'Pro Member' : 'Free Member'}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {user?.role === 'STUDENT_PRO' 
+                          ? 'You have access to all premium features' 
+                          : 'Limited access to basic features'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {user?.role === 'STUDENT_PRO' && (
+                      <Link
+                        to="/billing/subscription"
+                        className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+                      >
+                        Manage
+                      </Link>
+                    )}
+                    {user?.role === 'STUDENT_FREE' && (
+                      <Link
+                        to="/billing/pricing"
+                        className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors"
+                      >
+                        Upgrade
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <section className="w-full flex flex-col items-start justify-start p-4 gap-3">
                 <div className="w-full flex flex-row items-center justify-between gap-2">
                   <h2 className="leading-6 font-medium" tabIndex={0}>

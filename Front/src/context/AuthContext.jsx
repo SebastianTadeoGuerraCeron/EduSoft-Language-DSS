@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import api from '../API';
 
 const AuthContext = createContext();
 
@@ -7,6 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState(() => {
         const stored = localStorage.getItem('user');
         return stored ? JSON.parse(stored) : null;
@@ -20,6 +22,7 @@ export const AuthProvider = ({ children }) => {
             if (!token) {
                 setIsAuthenticated(false);
                 setUser(null);
+                setIsLoading(false);
                 return;
             }
 
@@ -41,6 +44,8 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error('Error decoding token:', error);
                 logout();
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -81,15 +86,47 @@ export const AuthProvider = ({ children }) => {
         return user.role === roles;
     };
 
+    // Verificar si el usuario tiene acceso premium (HU05)
+    const isPremium = () => {
+        if (!user || !user.role) return false;
+        return user.role === 'STUDENT_PRO' || user.role === 'ADMIN' || user.role === 'TUTOR';
+    };
+
+    // Verificar si puede acceder a contenido premium
+    const canAccessPremiumContent = (content) => {
+        if (!content) return false;
+        // Contenido gratuito - todos pueden acceder
+        if (!content.isPremium) return true;
+        // Contenido premium - verificar rol
+        return isPremium();
+    };
+
+    // Refrescar datos del usuario desde el servidor
+    const refreshUser = async () => {
+        try {
+            const response = await api.get('/user/me');
+            if (response.data.user) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                setUser(response.data.user);
+            }
+        } catch (error) {
+            console.error('Error refreshing user:', error);
+        }
+    };
+
     return (
         <AuthContext.Provider
             value={{
                 isAuthenticated,
+                isLoading,
                 user,
                 login,
                 logout,
                 updateUser,
+                refreshUser,
                 hasRole,
+                isPremium,
+                canAccessPremiumContent,
             }}
         >
             {children}

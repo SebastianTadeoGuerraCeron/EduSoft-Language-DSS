@@ -18,7 +18,7 @@ const PrivateNavbar = () => {
   const baseLinks = [
     { to: "/home", label: "Home" },
     { to: "/games", label: "Games" },
-    { to: "/exams", label: "📝 Exams" },
+    { to: "/exams", label: "Exams" },
     { to: "/progress", label: "Progress" },
     { to: "/profile", label: "Profile" },
     { to: "/about", label: "About us/Help" },
@@ -31,22 +31,27 @@ const PrivateNavbar = () => {
   if (hasRole(["TUTOR"])) {
     navLinks = [
       ...baseLinks,
-      { to: "/tutor/create-lesson", label: "✏️ Create Lesson" },
-      { to: "/tutor/exams/create", label: "📋 Create Exam" },
-      { to: "/tutor/lessons", label: "📚 My Lessons" },
-      { to: "/admin/dashboard", label: "🔐 Admin" },
+      { to: "/tutor/create-lesson", label: "Create Lesson" },
+      { to: "/tutor/exams/create", label: "Create Exam" },
+      { to: "/tutor/lessons", label: "My Lessons" },
+      { to: "/admin/dashboard", label: "Admin" },
     ];
   }
   // If STUDENT, add "My Learning" link
   else if (hasRole(["STUDENT_PRO", "STUDENT_FREE"])) {
     navLinks = [
       ...baseLinks,
-      { to: "/student/lessons", label: "📖 My Learning" },
+      { to: "/student/lessons", label: "My Learning" },
     ];
+    
+    // Add upgrade link for FREE students
+    if (hasRole(["STUDENT_FREE"])) {
+      navLinks.push({ to: "/billing/pricing", label: "Upgrade to Pro" });
+    }
   }
   // Si es ADMIN, agregar solo Admin
   else if (hasRole(["ADMIN"])) {
-    navLinks = [...baseLinks, { to: "/admin/dashboard", label: "🔐 Admin" }];
+    navLinks = [...baseLinks, { to: "/admin/dashboard", label: "Admin" }];
   }
 
   // Función para verificar si el link está activo

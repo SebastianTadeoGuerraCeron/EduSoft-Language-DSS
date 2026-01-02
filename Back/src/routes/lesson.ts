@@ -21,6 +21,7 @@ import {
 } from "../controllers/file-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
+import { checkLessonPremiumAccess, markPremiumContent } from "../middleware/checkPremiumAccess";
 
 const routerLesson = express.Router();
 
@@ -102,8 +103,15 @@ routerLesson.get(
 /**
  * GET /lessons/:id
  * Obtener una lección por ID
+ * Incluye validación de acceso premium (HU05)
  */
-routerLesson.get("/:id", getLessonByIdCtrl as express.RequestHandler);
+routerLesson.get(
+  "/:id",
+  authenticate as express.RequestHandler,
+  markPremiumContent as express.RequestHandler,
+  checkLessonPremiumAccess as express.RequestHandler,
+  getLessonByIdCtrl as express.RequestHandler
+);
 
 /**
  * PUT /lessons/:id

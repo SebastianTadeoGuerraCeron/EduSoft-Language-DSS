@@ -1,9 +1,11 @@
 import { Link } from 'react-router';
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import hero from '../../public/hero.jpg';
 
 export const HomeUser = () => {
 	const [loginMessage, setLoginMessage] = useState('');
+	const { user } = useAuth();
 
 	useEffect(() => {
 		const msg = localStorage.getItem('loginSuccess');
@@ -13,12 +15,37 @@ export const HomeUser = () => {
 		}
 	}, []);
 
+	const showUpgradeBanner = user?.role === 'STUDENT_FREE';
+
 	return (
 		<main className='w-full relative bg-[#fff] min-h-screen flex flex-col items-center justify-between text-center text-sm text-[#0f141a] font-lexend'>
 			{loginMessage && (
 				<div className='flex items-center gap-3 text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6 mt-8 max-w-xl mx-auto z-20'>
 					<img src='/check-circle.png' alt='Success' className='w-6 h-6' />
 					<span>{loginMessage}</span>
+				</div>
+			)}
+
+			{/* Banner promocional para usuarios FREE */}
+			{showUpgradeBanner && (
+				<div className='w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-4 shadow-lg z-20'>
+					<div className='max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4'>
+						<div className='flex items-center gap-3'>
+							<div className='bg-white/20 rounded-full p-2'>
+								<span className='text-lg'>🌟</span>
+							</div>
+							<div className='text-left'>
+								<p className='font-semibold text-sm sm:text-base'>Unlock Premium Features</p>
+								<p className='text-xs sm:text-sm opacity-90'>Unlimited access to lessons, exams and priority support</p>
+							</div>
+						</div>
+						<Link
+							to='/billing/pricing'
+							className='bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-150 text-sm whitespace-nowrap'
+						>
+							Upgrade to Pro
+						</Link>
+					</div>
 				</div>
 			)}
 			<section className='w-full max-w-[1280px] flex-1 flex flex-col items-center justify-center min-h-[400px] md:min-h-[500px] lg:min-h-[600px]'>

@@ -30,6 +30,13 @@ import ExamPreview from "./pages/exams/ExamPreview";
 import ExamResults from "./pages/exams/ExamResults";
 import ExamsList from "./pages/exams/ExamsList";
 import TakeExam from "./pages/exams/TakeExam";
+// Billing imports
+import Pricing from "./pages/billing/Pricing";
+import Upgrade from "./pages/billing/Upgrade";
+import BillingSuccess from "./pages/billing/Success";
+import BillingCancel from "./pages/billing/Cancel";
+import Subscription from "./pages/billing/Subscription";
+import PaymentMethods from "./pages/billing/PaymentMethods";
 
 const RouterProviders = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,6 +61,9 @@ const RouterProviders = () => {
           <Route path="register" element={<Register />} />
           <Route path="login" element={<Login />} />
           <Route path="recover-password" element={<RecoverPassword />} />
+
+          {/* Rutas de Pricing (pública) */}
+          <Route path="pricing" element={<Pricing />} />
 
           {/* Rutas protegidas (requieren autenticación) */}
           <Route
@@ -233,6 +243,56 @@ const RouterProviders = () => {
             element={
               <ProtectedRoute allowedRoles={["TUTOR"]}>
                 <ExamPreview />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Billing */}
+          <Route
+            path="billing/pricing"
+            element={
+              <ProtectedRoute>
+                <Pricing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="billing/upgrade"
+            element={
+              <ProtectedRoute>
+                <Upgrade />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="billing/success"
+            element={
+              <ProtectedRoute>
+                <BillingSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="billing/cancel"
+            element={
+              <ProtectedRoute>
+                <BillingCancel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="billing/subscription"
+            element={
+              <ProtectedRoute>
+                <Subscription />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="billing/payment-methods"
+            element={
+              <ProtectedRoute>
+                <PaymentMethods />
               </ProtectedRoute>
             }
           />

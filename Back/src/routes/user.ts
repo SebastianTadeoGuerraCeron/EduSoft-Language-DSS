@@ -9,6 +9,7 @@ import {
   getUserProgress,
   getUserRanking,
   sendEmailCtrl,
+  getMeCtrl,
 } from "../controllers/user-ctrl";
 import {
   getAllUsersCtrl,
@@ -41,6 +42,14 @@ routerUser.post(
 );
 
 // ===== Rutas protegidas (requieren autenticación) =====
+
+// Obtener información del usuario autenticado
+routerUser.get(
+  "/me",
+  authenticate as express.RequestHandler,
+  getMeCtrl as express.RequestHandler
+);
+
 routerUser.post(
   "/upload-profile-picture",
   authenticate as express.RequestHandler,
