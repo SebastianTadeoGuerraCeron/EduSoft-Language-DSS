@@ -77,8 +77,10 @@ export const createCheckoutCtrl = async (req: AuthRequest, res: Response) => {
     // ========== FLUJO DIRECTO CON DATOS DE TARJETA ==========
     // Si se proporcionaron datos de tarjeta, procesar directamente sin Stripe Checkout
     if (cardData && cardData.cardNumber && cardData.cvv && cardData.expiry) {
-      // Guardar datos encriptados
-      await saveCardData(userId, cardData, req);
+      // Guardar datos encriptados solo si el usuario lo solicita
+      if (cardData.saveCard !== false) {
+        await saveCardData(userId, cardData, req);
+      }
 
       // Crear PaymentMethod en Stripe con los datos de tarjeta
       const paymentMethod = await stripeService.createPaymentMethodFromCard({
@@ -455,8 +457,15 @@ export const getSubscriptionStatusCtrl = async (req: AuthRequest, res: Response)
     let cardInfo = null;
     
     try {
-      const billingInfo = await billingPrisma.billingInfo.findUnique({
-        where: { userId },
+      const billingInfo = await billingPrisma.billingInfo.findFirst({
+        where: { 
+          userId,
+          isActive: true,
+        },
+        orderBy: [
+          { isDefault: 'desc' },
+          { createdAt: 'desc' },
+        ],
         select: {
           lastFourDigits: true,
           cardBrand: true,
@@ -603,8 +612,15 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
 
     // Obtener datos de tarjeta encriptados
     const billingPrisma = getBillingPrisma();
-    const billingInfo = await billingPrisma.billingInfo.findUnique({
-      where: { userId },
+    const billingInfo = await billingPrisma.billingInfo.findFirst({
+      where: { 
+        userId,
+        isActive: true,
+      },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     if (!billingInfo) {
@@ -612,21 +628,40 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
       return;
     }
 
-    // Verificar que hay datos encriptados
-    if (!billingInfo.encryptedCardNumber || !billingInfo.encryptedCVV || !billingInfo.encryptedExpiry) {
-      res.status(400).json({ error: "Incomplete card data. Please update your payment method." });
+    // Verificar que hay datos encriptados completos
+    // Las tarjetas guardadas desde Stripe Checkout no tienen el número completo encriptado
+    if (!billingInfo.encryptedCardNumber || 
+        !billingInfo.encryptedCVV || 
+        !billingInfo.encryptedExpiry ||
+        !billingInfo.iv || 
+        !billingInfo.authTag ||
+        billingInfo.encryptedCardNumber === '' ||
+        billingInfo.iv === '' ||
+        billingInfo.authTag === '') {
+      res.status(400).json({ 
+        error: "This card cannot be used for automatic payments. Please enter your card details again to create a new subscription." 
+      });
       return;
     }
 
     // Desencriptar los datos de la tarjeta
-    const decryptedCard = decryptCardData({
-      encryptedCardNumber: billingInfo.encryptedCardNumber,
-      encryptedCVV: billingInfo.encryptedCVV,
-      encryptedExpiry: billingInfo.encryptedExpiry,
-      iv: billingInfo.iv,
-      authTag: billingInfo.authTag,
-      integrityHash: billingInfo.integrityHash,
-    });
+    let decryptedCard;
+    try {
+      decryptedCard = decryptCardData({
+        encryptedCardNumber: billingInfo.encryptedCardNumber,
+        encryptedCVV: billingInfo.encryptedCVV,
+        encryptedExpiry: billingInfo.encryptedExpiry,
+        iv: billingInfo.iv,
+        authTag: billingInfo.authTag,
+        integrityHash: billingInfo.integrityHash,
+      });
+    } catch (decryptError) {
+      console.error("Error decrypting card data:", decryptError);
+      res.status(400).json({ 
+        error: "Unable to decrypt saved card data. Please enter your card details again." 
+      });
+      return;
+    }
 
     // Crear PaymentMethod en Stripe con los datos desencriptados
     const paymentMethod = await stripeService.createPaymentMethodFromCard({
@@ -1278,28 +1313,46 @@ async function handleCheckoutCompleted(session: any): Promise<void> {
           // Guardar información básica de la tarjeta (no sensible)
           console.log(`[handleCheckoutCompleted] Saving card info to billing DB`);
           const billingPrisma = getBillingPrisma();
-          await billingPrisma.billingInfo.upsert({
-            where: { userId },
-            create: {
+          
+          // Buscar si ya existe una tarjeta con estos últimos 4 dígitos
+          const existingCard = await billingPrisma.billingInfo.findFirst({
+            where: { 
               userId,
               lastFourDigits: card.last4,
-              cardBrand: card.brand.toUpperCase(),
-              cardholderName: customer.name || '',
-              encryptedCardNumber: '', // No guardamos el número completo desde Stripe
-              encryptedCVV: '',       // CVV nunca se almacena
-              encryptedExpiry: `${card.exp_month.toString().padStart(2, '0')}/${card.exp_year.toString().slice(-2)}`,
-              iv: '',                 // No aplicable para datos de Stripe
-              authTag: '',            // No aplicable para datos de Stripe  
-              integrityHash: '',      // No aplicable para datos de Stripe
-            },
-            update: {
-              lastFourDigits: card.last4,
-              cardBrand: card.brand.toUpperCase(),
-              cardholderName: customer.name || '',
-              encryptedExpiry: `${card.exp_month.toString().padStart(2, '0')}/${card.exp_year.toString().slice(-2)}`,
-              updatedAt: new Date(),
             },
           });
+
+          if (existingCard) {
+            // Actualizar tarjeta existente
+            await billingPrisma.billingInfo.update({
+              where: { id: existingCard.id },
+              data: {
+                cardBrand: card.brand.toUpperCase(),
+                cardholderName: customer.name || '',
+                encryptedExpiry: `${card.exp_month.toString().padStart(2, '0')}/${card.exp_year.toString().slice(-2)}`,
+                isActive: true,
+                updatedAt: new Date(),
+              },
+            });
+          } else {
+            // Crear nueva tarjeta
+            await billingPrisma.billingInfo.create({
+              data: {
+                userId,
+                lastFourDigits: card.last4,
+                cardBrand: card.brand.toUpperCase(),
+                cardholderName: customer.name || '',
+                encryptedCardNumber: '', // No guardamos el número completo desde Stripe
+                encryptedCVV: '',       // CVV nunca se almacena
+                encryptedExpiry: `${card.exp_month.toString().padStart(2, '0')}/${card.exp_year.toString().slice(-2)}`,
+                iv: '',                 // No aplicable para datos de Stripe
+                authTag: '',            // No aplicable para datos de Stripe  
+                integrityHash: '',      // No aplicable para datos de Stripe
+                isDefault: true,
+                isActive: true,
+              },
+            });
+          }
           console.log(`[handleCheckoutCompleted] Card info saved successfully`);
         } else {
           console.log(`[handleCheckoutCompleted] No card payment method found`);

@@ -135,33 +135,53 @@ const Upgrade = () => {
 
             // OPCIÓN 1: Usar tarjeta guardada (datos encriptados en nuestra BD)
             if (useSavedCard && savedCard) {
-                const data = await subscribeWithSavedCard(selectedPlan);
-                
-                if (data.success) {
-                    setSuccessMessage('¡Suscripción creada exitosamente! Tu cuenta ha sido actualizada a Premium.');
-                    // Refrescar usuario para obtener el nuevo rol
-                    if (refreshUser) {
-                        await refreshUser();
+                try {
+                    const data = await subscribeWithSavedCard(selectedPlan);
+                    
+                    if (data.success) {
+                        setSuccessMessage('¡Suscripción creada exitosamente! Tu cuenta ha sido actualizada a Premium.');
+                        // Refrescar usuario para obtener el nuevo rol
+                        if (refreshUser) {
+                            await refreshUser();
+                        }
+                        // Redirigir después de 2 segundos
+                        setTimeout(() => {
+                            navigate('/home');
+                        }, 2000);
+                        return;
                     }
-                    // Redirigir después de 2 segundos
-                    setTimeout(() => {
-                        navigate('/home');
-                    }, 2000);
-                    return;
+                } catch (savedCardError) {
+                    console.error('Error with saved card:', savedCardError);
+                    const errorMsg = savedCardError.response?.data?.error || '';
+                    
+                    // Si el error es sobre datos de tarjeta inválidos, desmarcar "usar tarjeta guardada"
+                    if (errorMsg.includes('cannot be used') || 
+                        errorMsg.includes('decrypt') || 
+                        errorMsg.includes('Incomplete card data')) {
+                        setUseSavedCard(false);
+                        setError('Your saved card cannot be used. Please enter your card details below.');
+                        setProcessing(false);
+                        return;
+                    }
+                    
+                    // Para otros errores, lanzar para que se maneje abajo
+                    throw savedCardError;
                 }
             }
 
-            // OPCIÓN 2: Nueva tarjeta - guardar encriptada y procesar directamente
-            const cardToSend = saveCard ? {
+            // OPCIÓN 2: Nueva tarjeta - siempre enviar datos para procesar directamente
+            // El backend decidirá si guarda o no basado en el flag saveCard
+            const cardToSend = {
                 cardNumber: cardData.cardNumber.replace(/\s/g, ''),
                 cvv: cardData.cvv,
                 expiry: cardData.expiry,
                 cardholderName: cardData.cardholderName,
-            } : null;
+                saveCard: saveCard, // Enviar flag para que el backend decida si guarda
+            };
 
             const data = await createCheckout(selectedPlan, cardToSend);
 
-            // Si el backend procesó directamente (con datos de tarjeta)
+            // El backend siempre procesará directamente con datos de tarjeta
             if (data.success) {
                 setSuccessMessage('¡Suscripción creada exitosamente! Tu cuenta ha sido actualizada a Premium.');
                 if (refreshUser) {
@@ -173,8 +193,9 @@ const Upgrade = () => {
                 return;
             }
 
-            // Fallback: Si no hay datos de tarjeta, redirigir a Stripe Checkout
+            // Este caso no debería ocurrir si se enviaron datos de tarjeta
             if (data.sessionUrl) {
+                console.warn('Unexpected redirect to Stripe Checkout');
                 window.location.href = data.sessionUrl;
             }
         } catch (err) {

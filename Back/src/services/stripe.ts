@@ -18,7 +18,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 // Precios de los planes (en centavos)
 export const PLAN_PRICES = {
   MONTHLY: {
-    amount: 1, // $0.01 (TEST PRICE)
+    amount: 999, // $9.99
     currency: "usd",
     interval: "month" as const,
     name: "EduSoft Pro Monthly",
