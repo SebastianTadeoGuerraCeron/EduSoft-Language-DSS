@@ -30,6 +30,7 @@ import {
   deletePaymentMethodCtrl,
   getPlansCtrl,
   subscribeWithSavedCardCtrl,
+  reactivateSubscriptionCtrl,
 } from "../controllers/billing-ctrl";
 import { authenticate } from "../middleware/auth";
 import { requireReAuthentication } from "../middleware/reAuthenticate";
@@ -43,6 +44,16 @@ const routerBilling = express.Router();
  * Obtener planes disponibles (público para página de pricing)
  */
 routerBilling.get("/plans", getPlansCtrl as express.RequestHandler);
+
+/**
+ * POST /billing/reactivate
+ * Reactivar renovación automática si estaba cancelada al final del período
+ */
+routerBilling.post(
+  "/reactivate",
+  authenticate as express.RequestHandler,
+  reactivateSubscriptionCtrl as express.RequestHandler
+);
 
 /**
  * POST /billing/webhook

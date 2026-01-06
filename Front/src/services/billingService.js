@@ -73,6 +73,14 @@ export const cancelSubscription = async (password, immediate = false) => {
 };
 
 /**
+ * Reactivate auto-renewal (if previously set to cancel at period end)
+ */
+export const reactivateSubscription = async () => {
+    const response = await api.post('/billing/reactivate');
+    return response.data;
+};
+
+/**
  * Actualizar método de pago
  * Requiere re-autenticación (HU06)
  * @param {string} password - Contraseña para re-autenticación

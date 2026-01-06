@@ -323,9 +323,6 @@ const Upgrade = () => {
                                 ({savedCard.cardholderName})
                             </span>
                         </div>
-                        <p style={{ fontSize: '0.75rem', color: '#166534', marginTop: '0.5rem' }}>
-                            🔒 Your card data is stored encrypted with AES-256-GCM
-                        </p>
                     </div>
                 )}
 
@@ -417,29 +414,7 @@ const Upgrade = () => {
                             : `Pay $${selectedPlanData?.price || '0.00'}`
                         )}
                     </button>
-
-                    <div className="secure-badge">
-                        <span>🔒</span>
-                        <span>Secured with AES-256 encryption</span>
-                    </div>
                 </form>
-
-                {/* Test Card Info - Only show if entering new card */}
-                {(!useSavedCard || !savedCard) && (
-                    <div style={{ 
-                        marginTop: '1.5rem', 
-                        padding: '1rem', 
-                        background: '#fef3c7', 
-                        borderRadius: '8px',
-                        fontSize: '0.875rem'
-                    }}>
-                        <strong>🧪 Test Mode</strong>
-                        <p style={{ margin: '0.5rem 0 0 0', color: '#92400e' }}>
-                            Use card number: <code>4242 4242 4242 4242</code><br />
-                            Any future date and any 3-digit CVV
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     );

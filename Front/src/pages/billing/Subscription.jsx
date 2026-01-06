@@ -5,6 +5,7 @@ import {
     getSubscriptionStatus, 
     getPaymentHistory, 
     cancelSubscription,
+    reactivateSubscription,
     formatSubscriptionDate,
     formatPrice,
     isPremiumUser 
@@ -27,6 +28,9 @@ const Subscription = () => {
     const [showUpdatePaymentModal, setShowUpdatePaymentModal] = useState(false);
     const [cancelPending, setCancelPending] = useState(false);
     const [cancelImmediate, setCancelImmediate] = useState(false);
+    const [reactivating, setReactivating] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     useEffect(() => {
         // Verificar que sea estudiante
@@ -49,6 +53,11 @@ const Subscription = () => {
 
             setSubscriptionData(subData);
             setPayments(historyData.payments || []);
+
+            // If subscription is canceled, downgrade local user role to free
+            if (subData?.subscription?.status === 'CANCELED' && user?.role === 'STUDENT_PRO') {
+                updateUser?.({ ...user, role: 'STUDENT_FREE' });
+            }
         } catch (err) {
             console.error('Error loading subscription data:', err);
             setError('Failed to load subscription data.');
@@ -79,9 +88,10 @@ const Subscription = () => {
             }
 
             setShowReAuthModal(false);
-            alert(cancelImmediate 
+            setSuccessMessage(cancelImmediate 
                 ? 'Subscription cancelled immediately.' 
                 : 'Subscription will be cancelled at the end of your billing period.');
+            setShowSuccessModal(true);
         } catch (err) {
             console.error('Error cancelling subscription:', err);
             throw new Error(err.response?.data?.message || 'Failed to cancel subscription');
@@ -99,6 +109,19 @@ const Subscription = () => {
         } catch (err) {
             console.error('Error updating payment method:', err);
             throw new Error('Failed to update payment method');
+        }
+    };
+
+    const handleReactivate = async () => {
+        try {
+            setReactivating(true);
+            await reactivateSubscription();
+            await loadData();
+        } catch (err) {
+            console.error('Error reactivating subscription:', err);
+            setError('Failed to reactivate auto-renewal.');
+        } finally {
+            setReactivating(false);
         }
     };
 
@@ -197,6 +220,29 @@ const Subscription = () => {
                                     style={{ color: '#dc2626' }}
                                 >
                                     Cancel Immediately
+                                </button>
+                            </div>
+                        )}
+
+                        {subscription.status === 'ACTIVE' && !subscription.autoRenewal && (
+                            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                <button
+                                    className="plan-button primary"
+                                    onClick={handleReactivate}
+                                    disabled={reactivating}
+                                >
+                                    {reactivating ? 'Re-enabling...' : 'Enable Auto-Renewal'}
+                                </button>
+                            </div>
+                        )}
+
+                        {subscription.status === 'CANCELED' && (
+                            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                <button
+                                    className="plan-button primary"
+                                    onClick={() => navigate(`/billing/upgrade?plan=${subscription.plan || 'MONTHLY'}`)}
+                                >
+                                    Re-subscribe
                                 </button>
                             </div>
                         )}
@@ -320,7 +366,41 @@ const Subscription = () => {
                     confirmDanger={false}
                 />
             )}
-        </div>
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '2rem',
+                        borderRadius: '12px',
+                        maxWidth: '400px',
+                        textAlign: 'center',
+                    }}>
+                        <h3 style={{ marginBottom: '1rem' }}>Success</h3>
+                        <p style={{ marginBottom: '1.5rem', color: '#666' }}>{successMessage}</p>
+                        <button
+                            className="plan-button primary"
+                            onClick={() => {
+                                setShowSuccessModal(false);
+                                loadData();
+                            }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}        </div>
     );
 };
 

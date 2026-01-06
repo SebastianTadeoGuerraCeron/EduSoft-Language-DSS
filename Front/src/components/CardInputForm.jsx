@@ -38,10 +38,37 @@ const CardInputForm = ({ onSubmit, loading, onCancel }) => {
     // Detectar tipo de tarjeta
     const getCardType = (number) => {
         const cleanNumber = number.replace(/\s/g, '');
+        
+        // Visa: starts with 4
         if (/^4/.test(cleanNumber)) return 'visa';
-        if (/^5[1-5]/.test(cleanNumber)) return 'mastercard';
+        
+        // Mastercard: 51-55, 2221-2720
+        if (/^5[1-5]/.test(cleanNumber) || /^2(?:22[1-9]|2[3-9]\d|[3-6]\d{2}|7[01]\d|720)/.test(cleanNumber)) {
+            return 'mastercard';
+        }
+        
+        // American Express: 34, 37
         if (/^3[47]/.test(cleanNumber)) return 'amex';
-        if (/^6(?:011|5)/.test(cleanNumber)) return 'discover';
+        
+        // Discover: 6011, 622126-622925, 644-649, 65
+        if (/^6(?:011|22(?:1(?:2[6-9]|[3-9]\d)|[2-8]\d{2}|9(?:[01]\d|2[0-5]))|4[4-9]\d|5)/.test(cleanNumber)) {
+            return 'discover';
+        }
+        
+        // JCB: 3528-3589
+        if (/^35(?:2[89]|[3-8]\d)/.test(cleanNumber)) return 'jcb';
+        
+        // Diners Club: 300-305, 36, 38
+        if (/^3(?:0[0-5]|[68])/.test(cleanNumber)) return 'diners';
+        
+        // UnionPay: 62
+        if (/^62/.test(cleanNumber)) return 'unionpay';
+        
+        // Maestro: 5018, 5020, 5038, 5893, 6304, 6759, 6761-6763
+        if (/^(?:5(?:018|020|038|893)|6(?:304|759|76[1-3]))/.test(cleanNumber)) {
+            return 'maestro';
+        }
+        
         return 'unknown';
     };
 

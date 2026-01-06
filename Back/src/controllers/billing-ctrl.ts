@@ -111,18 +111,22 @@ export const createCheckoutCtrl = async (req: AuthRequest, res: Response) => {
           userId,
           plan: plan as "MONTHLY" | "YEARLY",
           status: "ACTIVE",
+          autoRenewal: true,
           stripeCustomerId: customer.id,
           stripeSubscriptionId: subscription.id,
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + (plan === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000),
+          canceledAt: null,
         },
         update: {
           plan: plan as "MONTHLY" | "YEARLY",
           status: "ACTIVE",
+          autoRenewal: true,
           stripeCustomerId: customer.id,
           stripeSubscriptionId: subscription.id,
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + (plan === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000),
+          canceledAt: null,
         },
       });
 
@@ -392,6 +396,49 @@ export const cancelSubscriptionCtrl = async (req: AuthRequest, res: Response) =>
   } catch (error) {
     console.error("[cancelSubscriptionCtrl] Error canceling subscription:", error);
     res.status(500).json({ error: "Failed to cancel subscription" });
+  }
+};
+
+/**
+ * Reactivate auto-renewal for a subscription (if it was set to cancel at period end)
+ * POST /billing/reactivate
+ */
+export const reactivateSubscriptionCtrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const subscription = await prisma.subscription.findUnique({ where: { userId } });
+
+    if (!subscription || !subscription.stripeSubscriptionId) {
+      res.status(404).json({ error: "No subscription found to reactivate" });
+      return;
+    }
+
+    // Reactivate in Stripe (sets cancel_at_period_end to false)
+    await stripeService.reactivateSubscription(subscription.stripeSubscriptionId);
+
+    // Update DB (don't change period dates, they remain the same)
+    await prisma.subscription.update({
+      where: { userId },
+      data: {
+        status: "ACTIVE",
+        autoRenewal: true,
+        canceledAt: null,
+      },
+    });
+
+    res.json({
+      message: "Auto-renewal has been re-enabled",
+      autoRenewal: true,
+    });
+  } catch (error) {
+    console.error("[reactivateSubscriptionCtrl] Error reactivating subscription:", error);
+    res.status(500).json({ error: "Failed to reactivate subscription" });
   }
 };
 
@@ -692,18 +739,22 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
         userId,
         plan: plan as "MONTHLY" | "YEARLY",
         status: "ACTIVE",
+        autoRenewal: true,
         stripeCustomerId: customer.id,
         stripeSubscriptionId: subscription.id,
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(Date.now() + (plan === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000),
+        canceledAt: null,
       },
       update: {
         plan: plan as "MONTHLY" | "YEARLY",
         status: "ACTIVE",
+        autoRenewal: true,
         stripeCustomerId: customer.id,
         stripeSubscriptionId: subscription.id,
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(Date.now() + (plan === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000),
+        canceledAt: null,
       },
     });
 
@@ -1392,6 +1443,7 @@ async function handleSubscriptionUpdated(subscription: any): Promise<void> {
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       autoRenewal: !subscription.cancel_at_period_end,
+      canceledAt: subscription.cancel_at_period_end ? new Date() : null,
     },
   });
 }
