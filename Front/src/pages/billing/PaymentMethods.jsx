@@ -431,21 +431,7 @@ const PaymentMethods = () => {
                                 Cancel
                             </button>
                         </div>
-
-                        <div className="secure-badge">
-                            <span></span>
-                            <span>Your card is secured with AES-256 encryption</span>
-                        </div>
                     </form>
-
-                    {/* Test Card Info */}
-                    <div className="test-mode-banner">
-                        <strong>🧪 Test Mode</strong>
-                        <p>
-                            Use card: <code>4242 4242 4242 4242</code> |
-                            Any future date | Any 3-digit CVV
-                        </p>
-                    </div>
                 </div>
             )}
 
