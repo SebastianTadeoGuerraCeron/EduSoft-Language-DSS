@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
  * USO: node scripts/hash-existing-passwords.js
  */
 async function hashExistingPasswords() {
-  console.log("🔄 Iniciando migración de contraseñas...\n");
+  console.log("[INICIO] Iniciando migración de contraseñas...\n");
 
   try {
     const users = await prisma.user.findMany();
@@ -29,20 +29,22 @@ async function hashExistingPasswords() {
           },
         });
 
-        console.log(`✅ Usuario ${user.email} actualizado`);
+        console.log(`[OK] Usuario ${user.email} actualizado`);
         updated++;
       } else {
-        console.log(`⏭️  Usuario ${user.email} ya tiene contraseña hasheada`);
+        console.log(
+          `[SKIP] Usuario ${user.email} ya tiene contraseña hasheada`
+        );
         skipped++;
       }
     }
 
-    console.log(`\n📊 Resumen:`);
+    console.log(`\n[RESUMEN]:`);
     console.log(`   Usuarios actualizados: ${updated}`);
     console.log(`   Usuarios omitidos: ${skipped}`);
-    console.log(`\n✅ Migración completada exitosamente`);
+    console.log(`\n[OK] Migración completada exitosamente`);
   } catch (error) {
-    console.error("❌ Error durante la migración:", error);
+    console.error("[ERROR] Error durante la migración:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

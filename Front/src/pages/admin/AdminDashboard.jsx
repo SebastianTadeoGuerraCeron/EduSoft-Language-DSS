@@ -12,6 +12,17 @@ const AdminDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [newRole, setNewRole] = useState('');
 
+    // Función para formatear nombres de roles
+    const formatRoleName = (role) => {
+        const roleNames = {
+            ADMIN: 'Administrador',
+            TUTOR: 'Tutor',
+            STUDENT_PRO: 'Estudiante Pro',
+            STUDENT_FREE: 'Estudiante',
+        };
+        return roleNames[role] || role;
+    };
+
     useEffect(() => {
         loadData();
     }, []);
@@ -68,19 +79,19 @@ const AdminDashboard = () => {
             {/* Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-blue-100 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Total Usuarios</h3>
-                    <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
+                    <h3 className="text-xl font-bold mb-3">Total Usuarios</h3>
+                    <p className="text-4xl font-bold">{stats?.totalUsers || 0}</p>
                 </div>
                 <div className="bg-green-100 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Total Juegos</h3>
-                    <p className="text-3xl font-bold">{stats?.totalGames || 0}</p>
+                    <h3 className="text-xl font-bold mb-3">Total Juegos</h3>
+                    <p className="text-4xl font-bold">{stats?.totalGames || 0}</p>
                 </div>
                 <div className="bg-purple-100 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Usuarios por Rol</h3>
-                    <div className="text-sm">
+                    <h3 className="text-xl font-bold mb-3">Usuarios por Rol</h3>
+                    <div className="text-base space-y-1">
                         {stats?.usersByRole?.map((r) => (
                             <div key={r.role} className="flex justify-between">
-                                <span>{r.role}:</span>
+                                <span>{formatRoleName(r.role)}:</span>
                                 <span className="font-bold">{r._count}</span>
                             </div>
                         ))}
@@ -148,8 +159,8 @@ const AdminDashboard = () => {
 
             {/* Modal para cambiar rol */}
             {selectedUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-8 rounded-lg max-w-md w-full">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedUser(null)}>
+                    <div className="bg-white p-8 rounded-lg max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-xl font-bold mb-4">
                             Cambiar Rol de {selectedUser.username}
                         </h3>

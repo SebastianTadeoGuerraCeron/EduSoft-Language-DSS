@@ -18,7 +18,7 @@ async function createAdmin() {
     new Promise((resolve) => rl.question(query, resolve));
 
   try {
-    console.log("🔐 Creación de Usuario Administrador\n");
+    console.log("[ADMIN] Creación de Usuario Administrador\n");
 
     const email = await question("Email del administrador: ");
     const username = await question("Nombre de usuario: ");
@@ -27,7 +27,7 @@ async function createAdmin() {
 
     // Validar contraseña
     if (password.length < 8) {
-      console.error("❌ La contraseña debe tener al menos 8 caracteres");
+      console.error("[ERROR] La contraseña debe tener al menos 8 caracteres");
       process.exit(1);
     }
 
@@ -37,7 +37,7 @@ async function createAdmin() {
     });
 
     if (existing) {
-      console.error(`❌ Ya existe un usuario con el email ${email}`);
+      console.error(`[ERROR] Ya existe un usuario con el email ${email}`);
       process.exit(1);
     }
 
@@ -56,13 +56,13 @@ async function createAdmin() {
       },
     });
 
-    console.log("\n✅ Usuario ADMIN creado exitosamente:");
+    console.log("\n[OK] Usuario ADMIN creado exitosamente:");
     console.log(`   Email: ${admin.email}`);
     console.log(`   Username: ${admin.username}`);
     console.log(`   Role: ${admin.role}`);
     console.log(`   ID: ${admin.id}`);
   } catch (error) {
-    console.error("❌ Error al crear administrador:", error);
+    console.error("[ERROR] Error al crear administrador:", error);
     process.exit(1);
   } finally {
     rl.close();
