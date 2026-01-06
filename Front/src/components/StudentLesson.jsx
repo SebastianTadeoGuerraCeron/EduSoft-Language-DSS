@@ -34,7 +34,7 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
     if (progress?.status === "COMPLETED") {
       return;
     }
-    
+
     if (currentModuleIndex >= lesson.modules.length - 1) {
       return;
     }
@@ -134,9 +134,8 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
         {lesson.modules.map((mod, idx) => (
           <div
             key={idx}
-            className={`module-nav-item ${
-              idx === currentModuleIndex ? "active" : ""
-            } ${idx < currentModuleIndex ? "completed" : ""}`}
+            className={`module-nav-item ${idx === currentModuleIndex ? "active" : ""
+              } ${idx < currentModuleIndex ? "completed" : ""}`}
             onClick={() => setCurrentModuleIndex(idx)}
           >
             <span className="module-number">{idx + 1}</span>
@@ -170,7 +169,7 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
 
         {/* Files for this Lesson */}
         <div className="lesson-files-section">
-          <h3>📁 Materials & Resources</h3>
+          <h3>Materials & Resources</h3>
           <LessonFilesManager
             lessonId={lessonId}
             token={localStorage.getItem("token")}
@@ -212,7 +211,7 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
       {/* Completion Status */}
       {progress?.status === "COMPLETED" && (
         <div className="completion-banner">
-          <h3>🎉 Congratulations!</h3>
+          <h3>Congratulations!</h3>
           <p>You have completed this lesson successfully.</p>
           <p className="completion-date">
             Completed on: {new Date(progress.completedAt).toLocaleDateString()}

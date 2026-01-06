@@ -24,7 +24,7 @@ export default function LessonCreation() {
   const [success, setSuccess] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [uploadingModuleId, setUploadingModuleId] = useState(null);
-  
+
   // State para archivos a subir
   const [pendingFiles, setPendingFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -58,7 +58,7 @@ export default function LessonCreation() {
   const handleBasicInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     let finalValue = type === "checkbox" ? checked : value;
-    
+
     // Validar límites de caracteres
     if (name === "title" && value.length > CHAR_LIMITS.title) {
       return;
@@ -66,12 +66,12 @@ export default function LessonCreation() {
     if (name === "description" && value.length > CHAR_LIMITS.description) {
       return;
     }
-    
+
     // Convertir duration a número
     if (name === "duration" && value !== "") {
       finalValue = parseInt(value, 10) || null;
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: finalValue,
@@ -104,7 +104,7 @@ export default function LessonCreation() {
     if (field === "contenido" && value.length > CHAR_LIMITS.moduleContent) {
       return;
     }
-    
+
     setFormData((prev) => {
       const newModules = [...prev.modules];
       newModules[idx] = { ...newModules[idx], [field]: value };
@@ -128,7 +128,7 @@ export default function LessonCreation() {
       console.log("isAuthenticated:", isAuthenticated);
       console.log("user object:", user);
       console.log("formData being sent:", JSON.stringify(formData, null, 2));
-      
+
       // Verificar autenticación
       if (!isAuthenticated || !user) {
         setError("You must be logged in to create a lesson");
@@ -190,7 +190,7 @@ export default function LessonCreation() {
           try {
             const formDataFile = new FormData();
             formDataFile.append("file", file);
-            
+
             await axios.post(
               `http://localhost:3000/lessons/${lessonId}/upload-file`,
               formDataFile,
@@ -208,7 +208,7 @@ export default function LessonCreation() {
         setUploading(false);
       }
 
-      setSuccess("✅ Lesson created successfully!");
+      setSuccess("Lesson created successfully!");
       setShowToast(true);
       setFormData({
         title: "",
@@ -231,10 +231,10 @@ export default function LessonCreation() {
 
   const handleAddFile = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validar cantidad de archivos
     if (pendingFiles.length + files.length > FILE_LIMITS.maxFiles) {
-      setError(`❌ Maximum ${FILE_LIMITS.maxFiles} files allowed. You already have ${pendingFiles.length}`);
+      setError(`Maximum ${FILE_LIMITS.maxFiles} files allowed. You already have ${pendingFiles.length}`);
       return;
     }
 
@@ -245,7 +245,7 @@ export default function LessonCreation() {
       // Validar tamaño individual
       if (file.size > FILE_LIMITS.maxFileSize) {
         setError(
-          `❌ File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed: 10MB`
+          `File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed: 10MB`
         );
         return;
       }
@@ -255,7 +255,7 @@ export default function LessonCreation() {
     // Validar tamaño total
     if (currentTotalSize + totalNewSize > FILE_LIMITS.maxTotalSize) {
       setError(
-        `❌ Total file size exceeds 50MB. You have ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB + trying to add ${(totalNewSize / 1024 / 1024).toFixed(2)}MB`
+        `Total file size exceeds 50MB. You have ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB + trying to add ${(totalNewSize / 1024 / 1024).toFixed(2)}MB`
       );
       return;
     }
@@ -263,7 +263,7 @@ export default function LessonCreation() {
     // Validar que sean PDFs
     for (const file of files) {
       if (!file.name.toLowerCase().endsWith(".pdf")) {
-        setError(`❌ Only PDF files are allowed. "${file.name}" is not a PDF`);
+        setError(`Only PDF files are allowed. "${file.name}" is not a PDF`);
         return;
       }
     }
@@ -287,7 +287,7 @@ export default function LessonCreation() {
               className="toast-close"
               onClick={() => setShowToast(false)}
             >
-              ✕
+              ×
             </button>
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function LessonCreation() {
           <h2>Basic Information</h2>
           <div className="form-group">
             <label htmlFor="title">
-              Lesson Title * 
+              Lesson Title *
               <span className="char-count">{formData.title.length}/{CHAR_LIMITS.title}</span>
             </label>
             <input
@@ -335,7 +335,7 @@ export default function LessonCreation() {
 
           <div className="form-group">
             <label htmlFor="description">
-              Description * 
+              Description *
               <span className="char-count">{formData.description.length}/{CHAR_LIMITS.description}</span>
             </label>
             <textarea
@@ -430,7 +430,7 @@ export default function LessonCreation() {
             <div key={idx} className="module-card">
               <div className="form-group">
                 <label htmlFor={`module-title-${idx}`}>
-                  Module Title * 
+                  Module Title *
                   <span className="char-count">{module.titulo.length}/{CHAR_LIMITS.moduleTitle}</span>
                 </label>
                 <input
@@ -445,7 +445,7 @@ export default function LessonCreation() {
 
               <div className="form-group">
                 <label htmlFor={`module-content-${idx}`}>
-                  Module Content * 
+                  Module Content *
                   <span className="char-count">{module.contenido.length}/{CHAR_LIMITS.moduleContent}</span>
                 </label>
                 <textarea
@@ -473,7 +473,7 @@ export default function LessonCreation() {
         <section className="form-section">
           <h2>📁 Lesson Files (Optional)</h2>
           <p className="info-text">Upload PDF files for your lesson.</p>
-          
+
           <div className="file-upload-area">
             <input
               type="file"
@@ -483,7 +483,7 @@ export default function LessonCreation() {
               accept=".pdf"
             />
             <label htmlFor="lesson-files" className="file-upload-label">
-              <span>📎 Select PDF files</span>
+              <span>Select PDF files</span>
               <small>PDF files only</small>
             </label>
           </div>
@@ -501,7 +501,7 @@ export default function LessonCreation() {
                       className="btn-remove-file"
                       onClick={() => handleRemoveFile(idx)}
                     >
-                      ✕
+                      ×
                     </button>
                   </li>
                 ))}

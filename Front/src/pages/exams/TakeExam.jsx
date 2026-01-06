@@ -247,7 +247,7 @@ export default function TakeExam() {
     return (
       <div className="take-exam-container">
         <div className="exam-instructions">
-          <h2>📝 {exam.title}</h2>
+          <h2>{exam.title}</h2>
           <p>{exam.description}</p>
 
           <div className="exam-info-box">
@@ -336,9 +336,8 @@ export default function TakeExam() {
               {(currentQ.options || []).map((option, idx) => (
                 <label
                   key={idx}
-                  className={`question-option ${
-                    answers[currentQ.id] === option ? "selected" : ""
-                  }`}
+                  className={`question-option ${answers[currentQ.id] === option ? "selected" : ""
+                    }`}
                 >
                   <input
                     type="radio"
@@ -358,9 +357,8 @@ export default function TakeExam() {
               {["true", "false"].map((value) => (
                 <label
                   key={value}
-                  className={`question-option ${
-                    answers[currentQ.id] === value ? "selected" : ""
-                  }`}
+                  className={`question-option ${answers[currentQ.id] === value ? "selected" : ""
+                    }`}
                 >
                   <input
                     type="radio"
@@ -377,14 +375,14 @@ export default function TakeExam() {
 
           {(currentQ.type === "SHORT_ANSWER" ||
             currentQ.type === "FILL_BLANK") && (
-            <input
-              type="text"
-              className="question-input"
-              placeholder="Write your answer..."
-              value={answers[currentQ.id] || ""}
-              onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
-            />
-          )}
+              <input
+                type="text"
+                className="question-input"
+                placeholder="Write your answer..."
+                value={answers[currentQ.id] || ""}
+                onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
+              />
+            )}
         </div>
       )}
 
@@ -394,9 +392,8 @@ export default function TakeExam() {
           {questions.map((q, idx) => (
             <button
               key={q.id}
-              className={`question-dot ${
-                idx === currentQuestion ? "active" : ""
-              } ${answers[q.id] ? "answered" : ""}`}
+              className={`question-dot ${idx === currentQuestion ? "active" : ""
+                } ${answers[q.id] ? "answered" : ""}`}
               onClick={() => setCurrentQuestion(idx)}
               aria-label={`Go to question ${idx + 1}`}
             >
@@ -427,7 +424,7 @@ export default function TakeExam() {
               onClick={() => handleSubmit(false)}
               disabled={submitting}
             >
-              {submitting ? "Submitting..." : "✅ Finish Exam"}
+              {submitting ? "Submitting..." : "Finish Exam"}
             </button>
           )}
         </div>

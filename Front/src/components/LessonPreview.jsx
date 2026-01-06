@@ -17,7 +17,7 @@ export default function LessonPreview({ lesson, onClose }) {
             <p className="preview-description">{lesson.description}</p>
           </div>
           <button className="preview-close" onClick={onClose}>
-            ✕
+            ×
           </button>
         </div>
 

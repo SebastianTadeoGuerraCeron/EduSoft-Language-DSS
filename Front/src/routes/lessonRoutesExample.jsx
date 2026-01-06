@@ -49,19 +49,19 @@ export const lessonNavbarItems = {
     {
       label: "Create Lesson",
       path: "#/tutor/create-lesson",
-      icon: "📝",
+      icon: "",
     },
     {
       label: "My Lessons",
       path: "#/tutor/lessons",
-      icon: "📚",
+      icon: "",
     },
   ],
   student: [
     {
       label: "My Learning",
       path: "#/student/lessons",
-      icon: "📖",
+      icon: "",
     },
   ],
 };
@@ -97,7 +97,7 @@ export default function Dashboard() {
           <a href="#/tutor/lessons">Manage My Lessons</a>
         </>
       )}
-      
+
       {isStudent && (
         <>
           <h2>Student Dashboard</h2>

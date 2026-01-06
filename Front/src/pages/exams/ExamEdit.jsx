@@ -255,7 +255,7 @@ export default function ExamEdit() {
     return (
       <div className="exam-create-container">
         <div className="empty-state">
-          <div className="empty-state-icon">📚</div>
+          <div className="empty-state-icon"></div>
           <h3>You have no created lessons</h3>
           <p>You must create a lesson before you can create an exam</p>
           <button
@@ -273,7 +273,7 @@ export default function ExamEdit() {
   return (
     <div className="exam-create-container">
       <div className="exam-create-header">
-        <h1>✏️ Edit Exam</h1>
+        <h1> Edit Exam</h1>
         <p>Modify your exam questions and settings</p>
       </div>
 
@@ -283,7 +283,7 @@ export default function ExamEdit() {
       <form className="exam-form" onSubmit={handleSubmit}>
         {/* General Configuration */}
         <div className="form-section">
-          <h2>📋 General Information</h2>
+          <h2>General Information</h2>
 
           <div className="form-group">
             <label htmlFor="title">Exam Title *</label>
@@ -324,7 +324,7 @@ export default function ExamEdit() {
               <option value="">Select a lesson</option>
               {lessons.map((lesson) => (
                 <option key={lesson.id} value={lesson.id}>
-                  {lesson.title} {lesson.isPremium ? "⭐" : ""}
+                  {lesson.title} {lesson.isPremium ? "(PRO)" : ""}
                 </option>
               ))}
             </select>
@@ -370,7 +370,7 @@ export default function ExamEdit() {
                 onChange={handleInputChange}
               />
               <label htmlFor="isPremium">
-                ⭐ Premium Exam (only for PRO subscribers)
+                Premium Exam (only for PRO subscribers)
               </label>
             </div>
           </div>
@@ -378,7 +378,7 @@ export default function ExamEdit() {
 
         {/* Questions */}
         <div className="form-section questions-section">
-          <h2>❓ Questions ({questions.length})</h2>
+          <h2>Questions ({questions.length})</h2>
 
           <div className="questions-list">
             {questions.map((question, index) => (
@@ -391,7 +391,7 @@ export default function ExamEdit() {
                     onClick={() => removeQuestion(question.id)}
                     aria-label="Delete question"
                   >
-                    ✕
+                    ×
                   </button>
                 </div>
 
@@ -474,7 +474,7 @@ export default function ExamEdit() {
                             className="option-remove"
                             onClick={() => removeOption(question.id, optIdx)}
                           >
-                            ✕
+                            ×
                           </button>
                         )}
                       </div>
@@ -515,22 +515,22 @@ export default function ExamEdit() {
                 {/* Answer for short answer or fill blank */}
                 {(question.type === "SHORT_ANSWER" ||
                   question.type === "FILL_BLANK") && (
-                  <div className="form-group">
-                    <label>Correct answer *</label>
-                    <input
-                      type="text"
-                      value={question.correctAnswer}
-                      onChange={(e) =>
-                        updateQuestion(
-                          question.id,
-                          "correctAnswer",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Write the correct answer..."
-                    />
-                  </div>
-                )}
+                    <div className="form-group">
+                      <label>Correct answer *</label>
+                      <input
+                        type="text"
+                        value={question.correctAnswer}
+                        onChange={(e) =>
+                          updateQuestion(
+                            question.id,
+                            "correctAnswer",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Write the correct answer..."
+                      />
+                    </div>
+                  )}
               </div>
             ))}
 

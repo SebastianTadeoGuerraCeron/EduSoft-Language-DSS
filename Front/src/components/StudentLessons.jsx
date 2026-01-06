@@ -86,11 +86,10 @@ export default function StudentLessons() {
                   <h3>{lesson.title}</h3>
                   <div className="lesson-badges">
                     <span
-                      className={`badge ${
-                        lesson.isPremium ? "premium" : "free"
-                      }`}
+                      className={`badge ${lesson.isPremium ? "premium" : "free"
+                        }`}
                     >
-                      {lesson.isPremium ? "⭐ PRO" : "FREE"}
+                      {lesson.isPremium ? "PRO" : "FREE"}
                     </span>
                     {isLocked && <span className="locked-badge">🔒</span>}
                   </div>
@@ -167,8 +166,8 @@ export default function StudentLessons() {
                     {progress?.percentage === 100
                       ? "Review Lesson"
                       : progress?.percentage > 0
-                      ? "Continue Learning"
-                      : "Start Lesson"}
+                        ? "Continue Learning"
+                        : "Start Lesson"}
                   </button>
                 )}
               </div>

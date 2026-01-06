@@ -46,11 +46,11 @@ const Upgrade = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            
+
             // Cargar planes
             const plansData = await getPlans();
             setPlans(plansData.plans || []);
-            
+
             // Verificar si hay tarjeta guardada
             try {
                 const cardInfo = await getPaymentMethod();
@@ -103,7 +103,7 @@ const Upgrade = () => {
         if (useSavedCard && savedCard) {
             return true;
         }
-        
+
         if (!cardData.cardNumber || cardData.cardNumber.replace(/\s/g, '').length < 15) {
             setError('Please enter a valid card number');
             return false;
@@ -137,9 +137,9 @@ const Upgrade = () => {
             if (useSavedCard && savedCard) {
                 try {
                     const data = await subscribeWithSavedCard(selectedPlan);
-                    
+
                     if (data.success) {
-                        setSuccessMessage('✅ Subscription created successfully! Your account has been updated to Premium.');
+                        setSuccessMessage('Subscription created successfully! Your account has been updated to Premium.');
                         // Refrescar usuario para obtener el nuevo rol
                         if (refreshUser) {
                             await refreshUser();
@@ -153,17 +153,17 @@ const Upgrade = () => {
                 } catch (savedCardError) {
                     console.error('Error with saved card:', savedCardError);
                     const errorMsg = savedCardError.response?.data?.error || '';
-                    
+
                     // Si el error es sobre datos de tarjeta inválidos, desmarcar "usar tarjeta guardada"
-                    if (errorMsg.includes('cannot be used') || 
-                        errorMsg.includes('decrypt') || 
+                    if (errorMsg.includes('cannot be used') ||
+                        errorMsg.includes('decrypt') ||
                         errorMsg.includes('Incomplete card data')) {
                         setUseSavedCard(false);
                         setError('Your saved card cannot be used. Please enter your card details below.');
                         setProcessing(false);
                         return;
                     }
-                    
+
                     // Para otros errores, lanzar para que se maneje abajo
                     throw savedCardError;
                 }
@@ -183,7 +183,7 @@ const Upgrade = () => {
 
             // El backend siempre procesará directamente con datos de tarjeta
             if (data.success) {
-                setSuccessMessage('✅ Subscription created successfully! Your account has been updated to Premium.');
+                setSuccessMessage('Subscription created successfully! Your account has been updated to Premium.');
                 if (refreshUser) {
                     await refreshUser();
                 }
@@ -286,7 +286,7 @@ const Upgrade = () => {
                         color: '#166534',
                         marginBottom: '1rem',
                     }}>
-                        ✅ {successMessage}
+                        {successMessage}
                     </div>
                 )}
 
@@ -409,7 +409,7 @@ const Upgrade = () => {
                         disabled={processing}
                         style={{ marginTop: '1rem' }}
                     >
-                        {processing ? 'Processing...' : (useSavedCard && savedCard 
+                        {processing ? 'Processing...' : (useSavedCard && savedCard
                             ? `Pay $${selectedPlanData?.price || '0.00'} with saved card`
                             : `Pay $${selectedPlanData?.price || '0.00'}`
                         )}

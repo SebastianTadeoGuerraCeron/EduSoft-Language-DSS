@@ -107,20 +107,17 @@ export const Grammar = () => {
 				onClick={() => move(w, fromDock)}
 				onKeyDown={handleKeyDown}
 				tabIndex={verified ? -1 : 0}
-				aria-label={`Word: ${w}. ${
-					fromDock
+				aria-label={`Word: ${w}. ${fromDock
 						? 'Press to move to the sentence'
 						: 'Press to return to the bank'
-				}`}
-				className={`px-3 py-1 m-1 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all ${
-					correct
+					}`}
+				className={`px-3 py-1 m-1 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all ${correct
 						? 'bg-green-300 border-2 border-green-500'
 						: wrong
-						? 'bg-red-300 border-2 border-red-500'
-						: 'bg-white border border-gray-300 hover:bg-gray-50'
-				} ${
-					verified ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:shadow-md'
-				}`}
+							? 'bg-red-300 border-2 border-red-500'
+							: 'bg-white border border-gray-300 hover:bg-gray-50'
+					} ${verified ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:shadow-md'
+					}`}
 			>
 				{w}
 			</motion.button>
@@ -173,9 +170,8 @@ export const Grammar = () => {
 							<span
 								className='ml-1 italic text-green-700 text-sm bg-green-100 px-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
 								tabIndex={0}
-								aria-label={`Correction: correct word is ${
-									correctSentence.split(' ')[i]
-								}`}
+								aria-label={`Correction: correct word is ${correctSentence.split(' ')[i]
+									}`}
 							>
 								{correctSentence.split(' ')[i]}
 							</span>
@@ -210,11 +206,10 @@ export const Grammar = () => {
 						onClick={handleVerify}
 						disabled={placed.length === 0}
 						tabIndex={0}
-						aria-label={`Verify sentence. ${
-							placed.length === 0
+						aria-label={`Verify sentence. ${placed.length === 0
 								? 'Place at least one word first'
 								: `Current sentence: ${placed.join(' ')}`
-						}`}
+							}`}
 						className='bg-blue-600 text-white px-6 py-3 rounded-lg disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:bg-blue-700 transition-colors font-medium'
 					>
 						Verify
@@ -246,17 +241,15 @@ export const Grammar = () => {
 			{/* feedback general - COMPLETAMENTE NAVEGABLE */}
 			{verified && (
 				<div
-					className={`p-4 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-						placed.join(' ') === correctSentence
+					className={`p-4 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-offset-2 ${placed.join(' ') === correctSentence
 							? 'bg-green-50 border-green-300 focus:ring-green-500'
 							: 'bg-red-50 border-red-300 focus:ring-red-500'
-					}`}
+						}`}
 					tabIndex={0}
-					aria-label={`Verification result: ${
-						placed.join(' ') === correctSentence
+					aria-label={`Verification result: ${placed.join(' ') === correctSentence
 							? 'Correct sentence'
 							: 'Incorrect sentence'
-					}`}
+						}`}
 				>
 					<div className='flex items-center gap-2'>
 						<span
@@ -266,13 +259,12 @@ export const Grammar = () => {
 								placed.join(' ') === correctSentence ? 'Success icon' : 'Error icon'
 							}
 						>
-							{placed.join(' ') === correctSentence ? '✅' : '❌'}
+							{placed.join(' ') === correctSentence ? 'CORRECT' : 'INCORRECT'}
 						</span>
 						<div>
 							<p
-								className={`font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-									placed.join(' ') === correctSentence ? 'text-green-600' : 'text-red-600'
-								}`}
+								className={`font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${placed.join(' ') === correctSentence ? 'text-green-600' : 'text-red-600'
+									}`}
 								tabIndex={0}
 							>
 								{placed.join(' ') === correctSentence
@@ -629,7 +621,7 @@ const GameResumeDetails = ({ results, score, onPlayAgain }) => {
 												className='text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-2 border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2'
 												tabIndex={0}
 											>
-												💡 Tip: Pay attention to sentence structure and word order.
+												Tip: Pay attention to sentence structure and word order.
 											</p>
 										</div>
 									</div>
@@ -650,14 +642,14 @@ const GameResumeDetails = ({ results, score, onPlayAgain }) => {
 					tabIndex={0}
 				>
 					{score >= 90 &&
-						'🎉 Outstanding! Your grammar skills are excellent. Keep it up!'}
+						'Outstanding! Your grammar skills are excellent. Keep it up!'}
 					{score >= 75 &&
 						score < 90 &&
 						"👏 Great job! You show strong understanding. A little more practice and you'll be perfect!"}
 					{score >= 60 &&
 						score < 75 &&
 						"💪 You're progressing. Focus on sentence structure and word order."}
-					{score < 60 && '🎯 Keep practicing! Grammar takes time. Review the feedback.'}
+					{score < 60 && 'Keep practicing! Grammar takes time. Review the feedback.'}
 				</div>
 			</div>
 

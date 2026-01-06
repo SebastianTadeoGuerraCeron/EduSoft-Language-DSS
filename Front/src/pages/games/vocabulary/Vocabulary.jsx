@@ -56,7 +56,7 @@ const GameScreen = ({ onGameOver }) => {
 		if (isCorrect) {
 			// CAMBIO AQUÍ: Se suman los puntos por pregunta en lugar de 1
 			setScore((prev) => prev + POINTS_PER_QUESTION);
-			setStatusMessage('<p class="text-2xl font-bold text-green-500">✅ Correct!</p>');
+			setStatusMessage('<p class="text-2xl font-bold text-green-500">Correct!</p>');
 		} else {
 			setStatusMessage(`
                 <p class="text-red-500">Not quite!</p>
@@ -86,7 +86,7 @@ const GameScreen = ({ onGameOver }) => {
 
 			<div className='my-8 flex flex-col items-center'>
 				<p className='text-xl sm:text-2xl text-gray-800 mb-4 bg-gray-100 p-6 rounded-lg min-h-[100px] flex items-center justify-center'
-				tabIndex={0}>
+					tabIndex={0}>
 					"{currentWord.definition}"
 				</p>
 			</div>
@@ -113,7 +113,7 @@ const GameScreen = ({ onGameOver }) => {
 			</form>
 			<div className='h-16 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100'>
 				<div dangerouslySetInnerHTML={{ __html: statusMessage }}
-				tabIndex={0} />
+					tabIndex={0} />
 			</div>
 			{isRoundComplete && (
 				<button
@@ -151,7 +151,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 	return (
 		<div className='w-full max-w-4xl mx-auto my-16 bg-white shadow-2xl rounded-2xl p-4 sm:p-8 md:p-12 text-left'>
 			<h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center'
-			tabIndex={0}>
+				tabIndex={0}>
 				Challenge Complete!
 			</h1>
 
@@ -159,11 +159,11 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			<div className='text-center mb-8'>
 				{/* Etiqueta para el puntaje */}
 				<div className='text-lg font-medium text-gray-600 mb-1'
-				tabIndex={0}>Score</div>
+					tabIndex={0}>Score</div>
 
 				{/* Resultado del puntaje */}
 				<div className='text-4xl sm:text-5xl font-bold text-blue-600 mb-2'
-				tabIndex={0}>
+					tabIndex={0}>
 					{finalScore}
 				</div>
 
@@ -180,7 +180,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			<div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8'>
 				<div className='bg-gray-50 p-4 rounded-lg text-center'>
 					<div className='text-2xl font-bold text-gray-800'
-					tabIndex={0}>
+						tabIndex={0}>
 						{correctAnswers.length}/{results.length}
 					</div>
 					<div className='text-sm text-gray-600' tabIndex={0}>Correct Definitions</div>
@@ -196,7 +196,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			</div>
 
 			<p className='text-gray-600 text-center mb-8 sm:mb-10'
-			tabIndex={0}>
+				tabIndex={0}>
 				Let's review your vocabulary performance. Use this feedback to expand your word
 				knowledge.
 			</p>
@@ -206,7 +206,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 				{correctAnswers.length > 0 && (
 					<section>
 						<h2 className='text-xl sm:text-2xl font-bold text-green-700 mb-4 flex items-center'
-						tabIndex={0}>
+							tabIndex={0}>
 							<span className='bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg'>
 								✓
 							</span>
@@ -220,7 +220,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 								>
 									<div className='flex items-start gap-3'>
 										<div className='flex-shrink-0 bg-green-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm'
-										tabIndex={0}>
+											tabIndex={0}>
 											{results.indexOf(r) + 1}
 										</div>
 										<div>
@@ -257,7 +257,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 								<div key={i} className='p-4 bg-gray-50 border border-gray-200 rounded-lg'>
 									<div className='flex items-start gap-3'>
 										<div className='flex-shrink-0 bg-gray-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm'
-										tabIndex={0}>
+											tabIndex={0}>
 											{results.indexOf(r) + 1}
 										</div>
 										<div>
@@ -275,8 +275,8 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 												</span>
 											</p>
 											<p className='text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-2 border-blue-300'
-											tabIndex={0}>
-												💡 Tip: Try to understand the context and meaning of the
+												tabIndex={0}>
+												Tip: Try to understand the context and meaning of the
 												definition. Look for key words that might help you identify the
 												correct term.
 											</p>
@@ -292,9 +292,9 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			{/* Mensaje motivacional basado en el rendimiento */}
 			<div className={`mt-8 p-4 rounded-lg ${performance.bg} border border-opacity-30`}>
 				<div className={`text-center ${performance.color} font-semibold`}
-				tabIndex={0}>
+					tabIndex={0}>
 					{finalScore >= 90 &&
-						'🎉 Outstanding! Your vocabulary knowledge is excellent. Keep up the great work!'}
+						'Outstanding! Your vocabulary knowledge is excellent. Keep up the great work!'}
 					{finalScore >= 75 &&
 						finalScore < 90 &&
 						"👏 Good job! You're showing strong vocabulary skills. A little more practice and you'll be perfect!"}
@@ -302,7 +302,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 						finalScore < 75 &&
 						"💪 You're making progress! Focus on learning new words and their definitions to improve your results."}
 					{finalScore < 60 &&
-						'🎯 Keep practicing! Vocabulary takes time to build. Review the feedback and try again.'}
+						'Keep practicing! Vocabulary takes time to build. Review the feedback and try again.'}
 				</div>
 			</div>
 

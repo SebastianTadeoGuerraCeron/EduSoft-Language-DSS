@@ -101,7 +101,7 @@ export default function ExamsList() {
   return (
     <div className="exams-container">
       <div className="exams-header">
-        <h1>📝 Available Exams</h1>
+        <h1>Available Exams</h1>
         <p>Test your knowledge with our interactive exams</p>
       </div>
 
@@ -136,7 +136,7 @@ export default function ExamsList() {
       {/* Exams list */}
       {filteredExams.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon"></div>
           <h3>No exams available</h3>
           <p>Come back later to find new exams</p>
         </div>
@@ -153,9 +153,9 @@ export default function ExamsList() {
                   <h3 className="exam-card-title">{exam.title}</h3>
                   <div className="exam-card-badge">
                     {exam.isPremium && (
-                      <span className="premium-badge">⭐ PRO</span>
+                      <span className="premium-badge">PRO</span>
                     )}
-                    {isLocked && <span className="locked-badge">🔒</span>}
+                    {isLocked && <span className="locked-badge">LOCKED</span>}
                   </div>
                 </div>
 
@@ -165,13 +165,13 @@ export default function ExamsList() {
                 </p>
 
                 {exam.lesson && (
-                  <div className="exam-card-lesson">📚 {exam.lesson.title}</div>
+                  <div className="exam-card-lesson">{exam.lesson.title}</div>
                 )}
 
                 <div className="exam-card-meta">
-                  <span>⏱️ {exam.timeLimit} min</span>
-                  <span>❓ {exam._count?.questions || 0} questions</span>
-                  <span>✅ {exam.passingPercentage}% to pass</span>
+                  <span>{exam.timeLimit} min</span>
+                  <span>{exam._count?.questions || 0} questions</span>
+                  <span>{exam.passingPercentage}% to pass</span>
                 </div>
 
                 <div className="exam-card-actions">
@@ -185,21 +185,21 @@ export default function ExamsList() {
                         }
                         title="Preview Exam"
                       >
-                        👁️ Preview
+                        Preview
                       </button>
                       <button
                         className="btn-secondary"
                         onClick={() => navigate(`/tutor/exams/${exam.id}/edit`)}
                         title="Edit Exam"
                       >
-                        ✏️ Edit
+                        Edit
                       </button>
                       <button
                         className="btn-danger"
                         onClick={() => handleDeleteClick(exam)}
                         title="Delete Exam"
                       >
-                        🗑️ Delete
+                        Delete
                       </button>
                     </>
                   ) : (
@@ -209,7 +209,7 @@ export default function ExamsList() {
                       onClick={() => handleExamClick(exam)}
                       disabled={isLocked}
                     >
-                      {isLocked ? "🔒 Requires PRO" : "Start Exam"}
+                      {isLocked ? "Requires PRO" : "Start Exam"}
                     </button>
                   )}
                 </div>
@@ -223,7 +223,7 @@ export default function ExamsList() {
       {hasRole(["TUTOR"]) && (
         <div style={{ marginTop: "2rem", textAlign: "center" }}>
           <Link to="/tutor/exams/create" className="btn-primary">
-            ➕ Create New Exam
+            Create New Exam
           </Link>
         </div>
       )}
@@ -249,7 +249,7 @@ export default function ExamsList() {
           onClick={() => setShowPremiumModal(false)}
         >
           <div className="premium-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="premium-modal-icon">🔒</div>
+            <div className="premium-modal-icon"></div>
             <h2>Exclusive PRO Content</h2>
             <p>
               This exam "{selectedExam?.title}" requires a PRO subscription to

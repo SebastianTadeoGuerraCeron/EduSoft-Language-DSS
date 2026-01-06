@@ -91,7 +91,7 @@ export default function LessonFilesManager({
         }
       );
 
-      setSuccess(`✅ ${file.name} uploaded successfully`);
+      setSuccess(`${file.name} uploaded successfully`);
 
       // Reload file list
       await loadFiles();
@@ -157,7 +157,7 @@ export default function LessonFilesManager({
         `/lessons/${lessonId}/files/${encodeURIComponent(fileName)}`
       );
 
-      setSuccess(`✅ ${fileName} deleted`);
+      setSuccess(`${fileName} deleted`);
       await loadFiles();
     } catch (err) {
       console.error("Error deleting file:", err);
@@ -208,7 +208,7 @@ export default function LessonFilesManager({
             className="alert-close"
             onClick={() => setError(null)}
           >
-            ✕
+            ×
           </button>
         </div>
       )}

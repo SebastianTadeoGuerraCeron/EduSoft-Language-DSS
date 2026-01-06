@@ -159,8 +159,7 @@ export default function ExamCreate() {
         }
         if (!q.options.includes(q.correctAnswer)) {
           setError(
-            `The correct answer for question ${
-              i + 1
+            `The correct answer for question ${i + 1
             } must be one of the options`
           );
           return;
@@ -216,7 +215,7 @@ export default function ExamCreate() {
     return (
       <div className="exam-create-container">
         <div className="empty-state">
-          <div className="empty-state-icon">📚</div>
+          <div className="empty-state-icon"></div>
           <h3>You have no created lessons</h3>
           <p>You must create a lesson before you can create an exam</p>
           <button
@@ -234,7 +233,7 @@ export default function ExamCreate() {
   return (
     <div className="exam-create-container">
       <div className="exam-create-header">
-        <h1>✏️ Create New Exam</h1>
+        <h1> Create New Exam</h1>
         <p>Create an exam to evaluate your students</p>
       </div>
 
@@ -244,7 +243,7 @@ export default function ExamCreate() {
       <form className="exam-form" onSubmit={handleSubmit}>
         {/* General Configuration */}
         <div className="form-section">
-          <h2>📋 General Information</h2>
+          <h2>General Information</h2>
 
           <div className="form-group">
             <label htmlFor="title">Exam Title *</label>
@@ -285,7 +284,7 @@ export default function ExamCreate() {
               <option value="">Select a lesson</option>
               {lessons.map((lesson) => (
                 <option key={lesson.id} value={lesson.id}>
-                  {lesson.title} {lesson.isPremium ? "⭐" : ""}
+                  {lesson.title} {lesson.isPremium ? "(PRO)" : ""}
                 </option>
               ))}
             </select>
@@ -331,7 +330,7 @@ export default function ExamCreate() {
                 onChange={handleInputChange}
               />
               <label htmlFor="isPremium">
-                ⭐ Premium Exam (only for PRO subscribers)
+                Premium Exam (only for PRO subscribers)
               </label>
             </div>
           </div>
@@ -339,7 +338,7 @@ export default function ExamCreate() {
 
         {/* Questions */}
         <div className="form-section questions-section">
-          <h2>❓ Questions ({questions.length})</h2>
+          <h2>Questions ({questions.length})</h2>
 
           <div className="questions-list">
             {questions.map((question, index) => (
@@ -352,7 +351,7 @@ export default function ExamCreate() {
                     onClick={() => removeQuestion(question.id)}
                     aria-label="Delete question"
                   >
-                    ✕
+                    ×
                   </button>
                 </div>
 
@@ -435,7 +434,7 @@ export default function ExamCreate() {
                             className="option-remove"
                             onClick={() => removeOption(question.id, optIdx)}
                           >
-                            ✕
+                            ×
                           </button>
                         )}
                       </div>
@@ -476,22 +475,22 @@ export default function ExamCreate() {
                 {/* Answer for short answer or fill blank */}
                 {(question.type === "SHORT_ANSWER" ||
                   question.type === "FILL_BLANK") && (
-                  <div className="form-group">
-                    <label>Correct answer *</label>
-                    <input
-                      type="text"
-                      value={question.correctAnswer}
-                      onChange={(e) =>
-                        updateQuestion(
-                          question.id,
-                          "correctAnswer",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Write the correct answer..."
-                    />
-                  </div>
-                )}
+                    <div className="form-group">
+                      <label>Correct answer *</label>
+                      <input
+                        type="text"
+                        value={question.correctAnswer}
+                        onChange={(e) =>
+                          updateQuestion(
+                            question.id,
+                            "correctAnswer",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Write the correct answer..."
+                      />
+                    </div>
+                  )}
               </div>
             ))}
 
@@ -523,7 +522,7 @@ export default function ExamCreate() {
             className="btn-primary"
             disabled={loading || questions.length === 0}
           >
-            {loading ? "Creating..." : "📝 Publish Exam"}
+            {loading ? "Creating..." : "Publish Exam"}
           </button>
         </div>
       </form>

@@ -61,38 +61,38 @@ const Success = () => {
             </div>
             <h1 className="result-title">Payment Successful!</h1>
             <p className="result-message">
-                Welcome to EduSoft Pro! 🎉<br />
+                Welcome to EduSoft Pro!<br />
                 Your subscription has been activated and you now have access to all premium content.
             </p>
 
-            <div style={{ 
-                background: '#f0fdf4', 
+            <div style={{
+                background: '#f0fdf4',
                 border: '1px solid #bbf7d0',
-                borderRadius: '12px', 
+                borderRadius: '12px',
                 padding: '1.5rem',
                 marginBottom: '2rem',
                 textAlign: 'left'
             }}>
                 <h3 style={{ margin: '0 0 1rem 0', color: '#16a34a' }}>What's included:</h3>
                 <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#166534' }}>
-                    <li>✅ Access to all premium lessons</li>
-                    <li>✅ Unlimited exam attempts</li>
-                    <li>✅ Priority support</li>
-                    <li>✅ Ad-free experience</li>
-                    <li>✅ Early access to new content</li>
+                    <li>Access to all premium lessons</li>
+                    <li>Unlimited exam attempts</li>
+                    <li>Priority support</li>
+                    <li>Ad-free experience</li>
+                    <li>Early access to new content</li>
                 </ul>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <Link 
-                    to="/student/lessons" 
+                <Link
+                    to="/student/lessons"
                     className="plan-button primary"
                     style={{ textDecoration: 'none', display: 'inline-block' }}
                 >
                     Explore Premium Lessons
                 </Link>
-                <Link 
-                    to="/billing/subscription" 
+                <Link
+                    to="/billing/subscription"
                     className="plan-button secondary"
                     style={{ textDecoration: 'none', display: 'inline-block' }}
                 >

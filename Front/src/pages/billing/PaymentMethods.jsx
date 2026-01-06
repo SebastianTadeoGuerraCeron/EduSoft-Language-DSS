@@ -228,20 +228,20 @@ const PaymentMethods = () => {
             {/* Messages */}
             {error && (
                 <div className="alert-message error">
-                    <span>❌</span> {error}
+                    <span>Error:</span> {error}
                 </div>
             )}
 
             {successMessage && (
                 <div className="alert-message success">
-                    <span>✅</span> {successMessage}
+                    <span>Success:</span> {successMessage}
                 </div>
             )}
 
             {/* Cards List */}
             <div className="checkout-card" style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ 
-                    marginBottom: '1.5rem', 
+                <h3 style={{
+                    marginBottom: '1.5rem',
                     color: '#1a1a2e',
                     display: 'flex',
                     alignItems: 'center',
@@ -292,7 +292,7 @@ const PaymentMethods = () => {
                                             className="action-btn set-default"
                                             title="Set as default"
                                         >
-                                            ⭐ Set Default
+                                            Set Default
                                         </button>
                                     )}
                                     <button
@@ -315,7 +315,7 @@ const PaymentMethods = () => {
                 <button
                     onClick={() => setShowAddForm(true)}
                     className="plan-button primary"
-                    style={{ 
+                    style={{
                         marginBottom: '1.5rem',
                         display: 'flex',
                         alignItems: 'center',
@@ -330,8 +330,8 @@ const PaymentMethods = () => {
             {/* Add Card Form */}
             {showAddForm && (
                 <div className="checkout-card">
-                    <h3 style={{ 
-                        marginBottom: '1.5rem', 
+                    <h3 style={{
+                        marginBottom: '1.5rem',
                         color: '#1a1a2e',
                         display: 'flex',
                         alignItems: 'center',
@@ -433,7 +433,7 @@ const PaymentMethods = () => {
                         </div>
 
                         <div className="secure-badge">
-                            <span>🔒</span>
+                            <span></span>
                             <span>Your card is secured with AES-256 encryption</span>
                         </div>
                     </form>
@@ -442,7 +442,7 @@ const PaymentMethods = () => {
                     <div className="test-mode-banner">
                         <strong>🧪 Test Mode</strong>
                         <p>
-                            Use card: <code>4242 4242 4242 4242</code> | 
+                            Use card: <code>4242 4242 4242 4242</code> |
                             Any future date | Any 3-digit CVV
                         </p>
                     </div>

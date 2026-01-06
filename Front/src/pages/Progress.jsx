@@ -126,8 +126,8 @@ export const Progress = () => {
                         {user?.role === 'STUDENT_PRO' ? 'Pro Member' : 'Free Member'}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        {user?.role === 'STUDENT_PRO' 
-                          ? 'You have access to all premium features' 
+                        {user?.role === 'STUDENT_PRO'
+                          ? 'You have access to all premium features'
                           : 'Limited access to basic features'}
                       </p>
                     </div>
@@ -249,7 +249,7 @@ export const Progress = () => {
                   className="leading-7 font-bold text-lg md:text-[22px]"
                   tabIndex={0}
                 >
-                  📝 Exam Results
+                  Exam Results
                 </h2>
               </section>
               <section className="w-full px-4 py-2">
@@ -344,22 +344,20 @@ export const Progress = () => {
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <span
-                                    className={`font-bold ${
-                                      passed
+                                    className={`font-bold ${passed
                                         ? "text-emerald-600"
                                         : "text-red-500"
-                                    }`}
+                                      }`}
                                   >
                                     {Math.round(attempt.score || 0)}%
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <span
-                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                                      passed
+                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${passed
                                         ? "bg-emerald-100 text-emerald-700"
                                         : "bg-red-100 text-red-700"
-                                    }`}
+                                      }`}
                                   >
                                     {passed ? "✓ Passed" : "✗ Failed"}
                                   </span>

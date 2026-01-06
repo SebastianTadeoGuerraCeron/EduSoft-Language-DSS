@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import StarIcon from '../components/icons/StarIcon';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import hero from '../../public/hero.jpg';
@@ -32,7 +33,7 @@ export const HomeUser = () => {
 					<div className='max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4'>
 						<div className='flex items-center gap-3'>
 							<div className='bg-white/20 rounded-full p-2'>
-								<span className='text-lg'>🌟</span>
+								<StarIcon className='w-5 h-5' />
 							</div>
 							<div className='text-left'>
 								<p className='font-semibold text-sm sm:text-base'>Unlock Premium Features</p>
@@ -71,7 +72,7 @@ export const HomeUser = () => {
 											Learn English by playing!
 										</h1>
 										<p className='w-full max-w-2xl leading-6 text-base sm:text-lg mt-2 text-[#e6e8eb]'
-										tabIndex={0}>
+											tabIndex={0}>
 											Learn English in a fun and effective way. At EduSoft, we transform
 											language learning into an entertaining experience through
 											interactive games that will help you improve your comprehension,

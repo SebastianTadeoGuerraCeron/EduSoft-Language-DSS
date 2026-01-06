@@ -96,13 +96,13 @@ export default function ExamResults() {
   return (
     <div className="results-container">
       <div className="results-header">
-        <h1>📊 Exam Results</h1>
+        <h1>Exam Results</h1>
         {attempt.exam?.title && <p>{attempt.exam.title}</p>}
       </div>
 
       {/* Score card */}
       <div className={`results-score-card ${passed ? "passed" : "failed"}`}>
-        <div className="results-icon">{passed ? "🎉" : "📚"}</div>
+        <div className="results-icon">{passed ? "PASSED" : "FAILED"}</div>
         <div className={`results-score ${passed ? "passed" : "failed"}`}>
           {Math.round(attempt.score || 0)}%
         </div>
@@ -112,9 +112,8 @@ export default function ExamResults() {
         <p>
           {passed
             ? "Congratulations! You have completed the exam successfully."
-            : `You need ${
-                attempt.exam?.passingPercentage || 60
-              }% to pass. Keep practicing!`}
+            : `You need ${attempt.exam?.passingPercentage || 60
+            }% to pass. Keep practicing!`}
         </p>
         <div className="results-details">
           <span>
@@ -134,79 +133,75 @@ export default function ExamResults() {
       {/* Answer review */}
       {Object.keys(answers).length > 0 && (
         <div className="results-questions">
-          <h2>📝 Answer Review</h2>
+          <h2>Answer Review</h2>
 
           {questions.length > 0
             ? // If we have the exam questions
-              questions.map((question, idx) => {
-                const answer = answers[question.id];
-                const isCorrect = answer?.isCorrect;
+            questions.map((question, idx) => {
+              const answer = answers[question.id];
+              const isCorrect = answer?.isCorrect;
 
-                return (
-                  <div
-                    key={question.id}
-                    className={`result-question ${
-                      isCorrect ? "correct" : "incorrect"
+              return (
+                <div
+                  key={question.id}
+                  className={`result-question ${isCorrect ? "correct" : "incorrect"
                     }`}
-                  >
-                    <div className="result-question-header">
-                      <span>Question {idx + 1}</span>
-                      <span
-                        className={`result-question-status ${
-                          isCorrect ? "correct" : "incorrect"
+                >
+                  <div className="result-question-header">
+                    <span>Question {idx + 1}</span>
+                    <span
+                      className={`result-question-status ${isCorrect ? "correct" : "incorrect"
                         }`}
-                      >
-                        {isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                      </span>
-                    </div>
-                    <div className="result-question-text">{question.text}</div>
-                    <div className="result-answer your-answer">
-                      <strong>Your answer:</strong>{" "}
-                      {answer?.userAnswer || "(no answer)"}
-                    </div>
-                    {!isCorrect && (
-                      <div className="result-answer correct-answer">
-                        <strong>Correct answer:</strong> {answer?.correctAnswer}
-                      </div>
-                    )}
+                    >
+                      {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                    </span>
                   </div>
-                );
-              })
+                  <div className="result-question-text">{question.text}</div>
+                  <div className="result-answer your-answer">
+                    <strong>Your answer:</strong>{" "}
+                    {answer?.userAnswer || "(no answer)"}
+                  </div>
+                  {!isCorrect && (
+                    <div className="result-answer correct-answer">
+                      <strong>Correct answer:</strong> {answer?.correctAnswer}
+                    </div>
+                  )}
+                </div>
+              );
+            })
             : // If we only have graded answers
-              Object.entries(answers).map(([questionId, answer], idx) => {
-                const isCorrect = answer?.isCorrect;
+            Object.entries(answers).map(([questionId, answer], idx) => {
+              const isCorrect = answer?.isCorrect;
 
-                return (
-                  <div
-                    key={questionId}
-                    className={`result-question ${
-                      isCorrect ? "correct" : "incorrect"
+              return (
+                <div
+                  key={questionId}
+                  className={`result-question ${isCorrect ? "correct" : "incorrect"
                     }`}
-                  >
-                    <div className="result-question-header">
-                      <span>Question {idx + 1}</span>
-                      <span
-                        className={`result-question-status ${
-                          isCorrect ? "correct" : "incorrect"
+                >
+                  <div className="result-question-header">
+                    <span>Question {idx + 1}</span>
+                    <span
+                      className={`result-question-status ${isCorrect ? "correct" : "incorrect"
                         }`}
-                      >
-                        {isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                        {" - "}
-                        {answer?.pointsEarned || 0} pts
-                      </span>
-                    </div>
-                    <div className="result-answer your-answer">
-                      <strong>Your answer:</strong>{" "}
-                      {answer?.userAnswer || "(no answer)"}
-                    </div>
-                    {!isCorrect && (
-                      <div className="result-answer correct-answer">
-                        <strong>Correct answer:</strong> {answer?.correctAnswer}
-                      </div>
-                    )}
+                    >
+                      {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                      {" - "}
+                      {answer?.pointsEarned || 0} pts
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="result-answer your-answer">
+                    <strong>Your answer:</strong>{" "}
+                    {answer?.userAnswer || "(no answer)"}
+                  </div>
+                  {!isCorrect && (
+                    <div className="result-answer correct-answer">
+                      <strong>Correct answer:</strong> {answer?.correctAnswer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
         </div>
       )}
 

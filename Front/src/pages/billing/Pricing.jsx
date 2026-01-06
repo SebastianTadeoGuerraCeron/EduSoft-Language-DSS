@@ -83,7 +83,7 @@ const Pricing = () => {
             {userIsPremium && (
                 <div className="promo-banner" style={{ background: '#16a34a', marginBottom: '2rem' }}>
                     <div className="promo-banner-text">
-                        <h3>🎉 You're already a Pro member!</h3>
+                        <h3>You're already a Pro member!</h3>
                         <p>Enjoy all premium features</p>
                     </div>
                     <Link to="/billing/subscription" className="promo-banner-button">
@@ -106,7 +106,7 @@ const Pricing = () => {
                         <li>Access to free exams</li>
                         <li>Community support</li>
                     </ul>
-                    <button 
+                    <button
                         className="plan-button secondary"
                         disabled
                     >
@@ -116,8 +116,8 @@ const Pricing = () => {
 
                 {/* Dynamic Plans from API */}
                 {plans.map((plan, index) => (
-                    <div 
-                        key={plan.id} 
+                    <div
+                        key={plan.id}
                         className={`pricing-card ${index === 0 ? 'featured' : ''}`}
                     >
                         <h2 className="plan-name">{plan.name}</h2>
@@ -159,13 +159,13 @@ const Pricing = () => {
                     <tbody>
                         <tr>
                             <td>Basic Lessons</td>
-                            <td>✅</td>
-                            <td>✅</td>
+                            <td className="text-green-600">Yes</td>
+                            <td className="text-green-600">Yes</td>
                         </tr>
                         <tr>
                             <td>Premium Lessons</td>
-                            <td>❌</td>
-                            <td>✅</td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Exam Attempts</td>
@@ -175,12 +175,12 @@ const Pricing = () => {
                         <tr>
                             <td>All Games</td>
                             <td>Basic</td>
-                            <td>✅</td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Priority Support</td>
-                            <td>❌</td>
-                            <td>✅</td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
@@ -189,7 +189,7 @@ const Pricing = () => {
             {/* FAQ Section */}
             <div style={{ marginTop: '4rem', maxWidth: '600px', margin: '4rem auto 0' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Frequently Asked Questions</h2>
-                
+
                 <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', marginBottom: '1rem' }}>
                     <h4 style={{ marginBottom: '0.5rem' }}>Can I cancel anytime?</h4>
                     <p style={{ color: '#666', margin: 0 }}>

@@ -55,7 +55,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
   const handleRemoveModule = (idx) => {
     // Validation: must have at least 1 module
     if (editingModules.length <= 1) {
-      setError("❌ You cannot delete the only module. There must be at least one.");
+      setError("You cannot delete the only module. There must be at least one.");
       setTimeout(() => setError(""), 4000);
       return;
     }
@@ -80,7 +80,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
     try {
       // Validation: at least 1 module
       if (editingModules.length === 0) {
-        setError("❌ At least one module is required");
+        setError("At least one module is required");
         return;
       }
 
@@ -88,11 +88,11 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
       for (let i = 0; i < editingModules.length; i++) {
         const module = editingModules[i];
         if (!module.titulo.trim()) {
-          setError(`❌ Module ${i + 1} must have a title`);
+          setError(`Module ${i + 1} must have a title`);
           return;
         }
         if (!module.contenido.trim()) {
-          setError(`❌ Module ${i + 1} must have content`);
+          setError(`Module ${i + 1} must have content`);
           return;
         }
       }
@@ -117,7 +117,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
         }
       );
 
-      setSuccess("✅ Changes saved successfully!");
+      setSuccess("Changes saved successfully!");
 
       // Cerrar después de 2 segundos
       setTimeout(() => {
@@ -138,7 +138,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
     <div className="lesson-edit-overlay">
       <div className="lesson-edit-modal">
         <button className="close-btn" onClick={onClose} disabled={loading}>
-          ✕
+          ×
         </button>
 
         <h2>📝 Edit Lesson</h2>
@@ -166,7 +166,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
                         : "Delete module"
                     }
                   >
-                    ✕ Delete
+                    Delete
                   </button>
                 </div>
 
@@ -248,7 +248,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
                 className="btn-confirmation-delete"
                 onClick={confirmRemoveModule}
               >
-                ✕ Delete
+                Delete
               </button>
             </div>
           </div>

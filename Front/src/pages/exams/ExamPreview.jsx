@@ -83,7 +83,7 @@ export default function ExamPreview() {
     <div className="exam-preview-container">
       {/* Header */}
       <div className="exam-preview-header">
-        <div className="preview-badge">👁️ Preview Mode</div>
+        <div className="preview-badge">Preview Mode</div>
         <h1>{exam.title}</h1>
         {exam.description && (
           <p className="exam-description">{exam.description}</p>
@@ -91,7 +91,7 @@ export default function ExamPreview() {
 
         <div className="exam-preview-meta">
           <div className="meta-item">
-            <span className="meta-label">📚 Lesson:</span>
+            <span className="meta-label">Lesson:</span>
             <span className="meta-value">{exam.lesson?.title || "N/A"}</span>
           </div>
           <div className="meta-item">
@@ -99,11 +99,11 @@ export default function ExamPreview() {
             <span className="meta-value">{exam.timeLimit} minutes</span>
           </div>
           <div className="meta-item">
-            <span className="meta-label">✅ Passing:</span>
+            <span className="meta-label">Passing:</span>
             <span className="meta-value">{exam.passingPercentage}%</span>
           </div>
           <div className="meta-item">
-            <span className="meta-label">❓ Questions:</span>
+            <span className="meta-label">Questions:</span>
             <span className="meta-value">{exam.questions?.length || 0}</span>
           </div>
           <div className="meta-item">
@@ -112,7 +112,7 @@ export default function ExamPreview() {
           </div>
           {exam.isPremium && (
             <div className="meta-item">
-              <span className="premium-badge">⭐ Premium</span>
+              <span className="premium-badge">Premium</span>
             </div>
           )}
         </div>
@@ -120,7 +120,7 @@ export default function ExamPreview() {
 
       {/* Questions */}
       <div className="exam-preview-questions">
-        <h2>📝 Questions</h2>
+        <h2>Questions</h2>
 
         {exam.questions?.map((question, index) => (
           <div key={question.id} className="preview-question-card">
@@ -140,9 +140,8 @@ export default function ExamPreview() {
                 {question.options.map((option, optIdx) => (
                   <div
                     key={optIdx}
-                    className={`preview-option ${
-                      option === question.correctAnswer ? "correct-answer" : ""
-                    }`}
+                    className={`preview-option ${option === question.correctAnswer ? "correct-answer" : ""
+                      }`}
                   >
                     <span className="option-letter">
                       {String.fromCharCode(65 + optIdx)}.
@@ -160,9 +159,8 @@ export default function ExamPreview() {
             {question.type === "TRUE_FALSE" && (
               <div className="preview-options">
                 <div
-                  className={`preview-option ${
-                    question.correctAnswer === "true" ? "correct-answer" : ""
-                  }`}
+                  className={`preview-option ${question.correctAnswer === "true" ? "correct-answer" : ""
+                    }`}
                 >
                   <span className="option-text">True</span>
                   {question.correctAnswer === "true" && (
@@ -170,9 +168,8 @@ export default function ExamPreview() {
                   )}
                 </div>
                 <div
-                  className={`preview-option ${
-                    question.correctAnswer === "false" ? "correct-answer" : ""
-                  }`}
+                  className={`preview-option ${question.correctAnswer === "false" ? "correct-answer" : ""
+                    }`}
                 >
                   <span className="option-text">False</span>
                   {question.correctAnswer === "false" && (
@@ -185,11 +182,11 @@ export default function ExamPreview() {
             {/* Short Answer / Fill Blank */}
             {(question.type === "SHORT_ANSWER" ||
               question.type === "FILL_BLANK") && (
-              <div className="preview-correct-answer">
-                <span className="answer-label">Correct Answer:</span>
-                <span className="answer-value">{question.correctAnswer}</span>
-              </div>
-            )}
+                <div className="preview-correct-answer">
+                  <span className="answer-label">Correct Answer:</span>
+                  <span className="answer-value">{question.correctAnswer}</span>
+                </div>
+              )}
           </div>
         ))}
       </div>
@@ -208,7 +205,7 @@ export default function ExamPreview() {
           className="btn-primary"
           onClick={() => navigate(`/tutor/exams/${examId}/edit`)}
         >
-          ✏️ Edit Exam
+          Edit Exam
         </button>
       </div>
     </div>

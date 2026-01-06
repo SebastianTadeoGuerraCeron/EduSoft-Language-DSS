@@ -463,9 +463,8 @@ const PronunciationGameScreen = ({ onGameOver, isSupported }) => {
 							🎛️ Audio Settings
 						</span>
 						<svg
-							className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
-								showAudioControls ? 'rotate-180' : ''
-							}`}
+							className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showAudioControls ? 'rotate-180' : ''
+								}`}
 							fill='none'
 							stroke='currentColor'
 							viewBox='0 0 24 24'
@@ -482,9 +481,8 @@ const PronunciationGameScreen = ({ onGameOver, isSupported }) => {
 					{/* Collapsible Audio Controls Panel */}
 					<div
 						id='audio-controls-panel'
-						className={`transition-all duration-300 ease-in-out overflow-hidden ${
-							showAudioControls ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'
-						}`}
+						className={`transition-all duration-300 ease-in-out overflow-hidden ${showAudioControls ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'
+							}`}
 					>
 						<div className='p-4 bg-white rounded-lg border border-gray-200 shadow-sm'>
 							{/* Volume Control */}
@@ -572,11 +570,10 @@ const PronunciationGameScreen = ({ onGameOver, isSupported }) => {
 					<button
 						onClick={handleSpeakClick}
 						disabled={isSpeaking || !isSupported}
-						className={`font-bold py-3 px-6 rounded-lg text-xl shadow-md ${
-							isListening
+						className={`font-bold py-3 px-6 rounded-lg text-xl shadow-md ${isListening
 								? 'bg-red-500 hover:bg-red-600 text-white'
 								: 'bg-blue-600 hover:bg-blue-700 text-white'
-						} disabled:opacity-50 disabled:cursor-not-allowed`}
+							} disabled:opacity-50 disabled:cursor-not-allowed`}
 						title={!isSupported ? 'Speech Recognition not supported' : ''}
 					>
 						{isListening ? '🛑 Stop' : '🎤 Speak'}
@@ -612,9 +609,9 @@ const PronunciationGameOverScreen = ({ finalScore, results, onPlayAgain }) => {
 	const avgConfidence =
 		results.length > 0
 			? Math.round(
-					(results.reduce((acc, r) => acc + (r.confidence || 0), 0) / results.length) *
-						100
-			  )
+				(results.reduce((acc, r) => acc + (r.confidence || 0), 0) / results.length) *
+				100
+			)
 			: 0;
 
 	const getPerformanceLevel = (score) => {
@@ -783,7 +780,7 @@ const PronunciationGameOverScreen = ({ finalScore, results, onPlayAgain }) => {
 												className='text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-2 border-blue-300'
 												tabIndex={0}
 											>
-												💡 Tip: Try pronouncing each word slowly and clearly. Focus on
+												Tip: Try pronouncing each word slowly and clearly. Focus on
 												consonant clusters and vowel sounds.
 											</p>
 										</div>
@@ -799,7 +796,7 @@ const PronunciationGameOverScreen = ({ finalScore, results, onPlayAgain }) => {
 			<div className={`mt-8 p-4 rounded-lg ${performance.bg} border border-opacity-30`}>
 				<div className={`text-center ${performance.color} font-semibold`} tabIndex={0}>
 					{finalScore >= 90 &&
-						'🎉 Outstanding! Your pronunciation is excellent. Keep up the great work!'}
+						'Outstanding! Your pronunciation is excellent. Keep up the great work!'}
 					{finalScore >= 75 &&
 						finalScore < 90 &&
 						"👏 Good job! You're showing strong pronunciation skills. A little more practice and you'll be perfect!"}
@@ -807,7 +804,7 @@ const PronunciationGameOverScreen = ({ finalScore, results, onPlayAgain }) => {
 						finalScore < 75 &&
 						"💪 You're making progress! Focus on the areas for improvement and you'll see great results."}
 					{finalScore < 60 &&
-						'🎯 Keep practicing! Pronunciation takes time to master. Review the feedback and try again.'}
+						'Keep practicing! Pronunciation takes time to master. Review the feedback and try again.'}
 				</div>
 			</div>
 

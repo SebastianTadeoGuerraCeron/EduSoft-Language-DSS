@@ -103,7 +103,7 @@ export default function TutorLessons({ userId }) {
               className="modal-close"
               onClick={() => setShowAssignModal(false)}
             >
-              ✕
+              ×
             </button>
             <LessonAssignment
               lessonId={selectedLessonId}
@@ -230,7 +230,7 @@ export default function TutorLessons({ userId }) {
                 className="btn-confirmation-delete"
                 onClick={confirmDeleteLesson}
               >
-                ✕ Eliminar Lección
+                Delete Lesson
               </button>
             </div>
           </div>
