@@ -9,7 +9,7 @@ import BookIcon from './icons/BookIcon';
 const RoleBadge = ({ role }) => {
     const roleConfig = {
         ADMIN: {
-            label: 'Administrador',
+            label: 'Administrator',
             bgColor: 'bg-red-600',
             textColor: 'text-white',
             Icon: AdminIcon,
@@ -21,13 +21,13 @@ const RoleBadge = ({ role }) => {
             Icon: TutorIcon,
         },
         STUDENT_PRO: {
-            label: 'Estudiante Pro',
+            label: 'Pro Student',
             bgColor: 'bg-purple-600',
             textColor: 'text-white',
             Icon: StarIcon,
         },
         STUDENT_FREE: {
-            label: 'Estudiante',
+            label: 'Student',
             bgColor: 'bg-gray-600',
             textColor: 'text-white',
             Icon: BookIcon,

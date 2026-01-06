@@ -12,13 +12,13 @@ const AdminDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [newRole, setNewRole] = useState('');
 
-    // Función para formatear nombres de roles
+    // Function to format role names
     const formatRoleName = (role) => {
         const roleNames = {
-            ADMIN: 'Administrador',
+            ADMIN: 'Administrator',
             TUTOR: 'Tutor',
-            STUDENT_PRO: 'Estudiante Pro',
-            STUDENT_FREE: 'Estudiante',
+            STUDENT_PRO: 'Pro Student',
+            STUDENT_FREE: 'Student',
         };
         return roleNames[role] || role;
     };

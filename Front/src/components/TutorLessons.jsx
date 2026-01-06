@@ -204,27 +204,27 @@ export default function TutorLessons({ userId }) {
         </div>
       )}
 
-      {/* Modal de confirmación para eliminar lección */}
+      {/* Confirmation modal to delete lesson */}
       {confirmDelete && (
         <div className="confirmation-overlay" onClick={() => setConfirmDelete(null)}>
           <div
             className="confirmation-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>⚠️ Confirmar eliminación</h3>
+            <h3>⚠️ Confirm Deletion</h3>
             <p>
-              ¿Estás seguro de que deseas eliminar la lección{" "}
+              Are you sure you want to delete the lesson{" "}
               <strong>"{confirmDelete.title}"</strong>?
             </p>
             <p className="confirmation-hint">
-              Esta acción no se puede deshacer y también eliminará todas las asignaciones relacionadas.
+              This action cannot be undone and will also delete all related assignments.
             </p>
             <div className="confirmation-actions">
               <button
                 className="btn-confirmation-cancel"
                 onClick={() => setConfirmDelete(null)}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 className="btn-confirmation-delete"

@@ -288,7 +288,7 @@ export const Register = () => {
 											</span>
 										</div>
 										<p className='text-xs text-gray-600 mt-1'>
-											Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número
+											Must be at least 8 characters, with one uppercase, one lowercase, and one number
 										</p>
 									</div>
 								)}
