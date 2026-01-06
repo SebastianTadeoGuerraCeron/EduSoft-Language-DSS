@@ -11,16 +11,16 @@ export const validatePasswordStrength = (password) => {
   const errors = [];
 
   if (password.length < minLength) {
-    errors.push(`Debe tener al menos ${minLength} caracteres`);
+    errors.push(`Must have at least ${minLength} characters`);
   }
   if (!hasUpperCase) {
-    errors.push("Debe contener al menos una letra mayúscula");
+    errors.push("Must contain at least one uppercase letter");
   }
   if (!hasLowerCase) {
-    errors.push("Debe contener al menos una letra minúscula");
+    errors.push("Must contain at least one lowercase letter");
   }
   if (!hasNumber) {
-    errors.push("Debe contener al menos un número");
+    errors.push("Must contain at least one number");
   }
 
   return {
@@ -41,23 +41,23 @@ export const validateEmail = (email) => {
  * Obtener nivel de fortaleza de contraseña (débil, media, fuerte)
  */
 export const getPasswordStrength = (password) => {
-  if (!password) return { level: "none", label: "Sin contraseña" };
+  if (!password) return { level: "none", label: "No password" };
 
   let score = 0;
 
-  // Longitud
+  // Length
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
 
-  // Complejidad
+  // Complexity
   if (/[a-z]/.test(password)) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
-  if (/[^a-zA-Z0-9]/.test(password)) score++; // Caracteres especiales
+  if (/[^a-zA-Z0-9]/.test(password)) score++; // Special characters
 
-  if (score <= 2) return { level: "weak", label: "Débil", color: "red" };
-  if (score <= 4) return { level: "medium", label: "Media", color: "orange" };
-  return { level: "strong", label: "Fuerte", color: "green" };
+  if (score <= 2) return { level: "weak", label: "Weak", color: "red" };
+  if (score <= 4) return { level: "medium", label: "Medium", color: "orange" };
+  return { level: "strong", label: "Strong", color: "green" };
 };
 
 /**

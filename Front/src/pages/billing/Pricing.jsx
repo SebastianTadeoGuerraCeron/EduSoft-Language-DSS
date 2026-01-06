@@ -5,8 +5,8 @@ import { getPlans, isPremiumUser } from '../../services/billingService';
 import '../../styles/Billing.css';
 
 /**
- * Página de Pricing - Comparación de planes
- * Muestra los planes disponibles y permite upgrade a premium
+ * Pricing Page - Plan Comparison
+ * Shows available plans and allows upgrading to premium
  */
 const Pricing = () => {
     const { user, isAuthenticated, hasRole } = useAuth();
@@ -16,7 +16,7 @@ const Pricing = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Verificar que sea estudiante
+        // Verify that it's a student
         if (isAuthenticated && !hasRole(['STUDENT_FREE', 'STUDENT_PRO'])) {
             navigate('/home');
             return;
@@ -38,20 +38,20 @@ const Pricing = () => {
     };
 
     const handleSelectPlan = (planId) => {
-        // Si no está autenticado, redirigir a login
+        // If not authenticated, redirect to login
         if (!isAuthenticated) {
             navigate('/login', { state: { from: '/billing/upgrade', selectedPlan: planId } });
             return;
         }
 
-        // Si ya es premium, redirigir a gestión de suscripción
+        // If already premium, redirect to subscription management
         if (isPremiumUser(user)) {
             navigate('/billing/subscription');
             return;
         }
 
-        // Redirigir a la página de Upgrade con el plan seleccionado
-        // Ahí el usuario ingresará su tarjeta en nuestro formulario
+        // Redirect to Upgrade page with the selected plan
+        // There the user will enter their card in our form
         navigate(`/billing/upgrade?plan=${planId}`);
     };
 

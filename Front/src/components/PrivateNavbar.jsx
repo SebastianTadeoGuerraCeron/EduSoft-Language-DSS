@@ -77,7 +77,7 @@ const PrivateNavbar = () => {
         {/* Hamburger for mobile */}
         <button
           className="md:hidden flex items-center justify-center p-2 rounded focus:outline-2 focus:outline-blue-400"
-          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           onClick={() => setMenuOpen((v) => !v)}
         >
           <img src={burgerIcon} alt="Menu" className="w-6 h-6" />
@@ -121,7 +121,7 @@ const PrivateNavbar = () => {
             ? "max-h-96 opacity-100"
             : "max-h-0 opacity-0 overflow-hidden"
         }`}
-        aria-label="Menú de navegación"
+        aria-label="Navigation menu"
       >
         {navLinks.map((link) => (
           <li key={link.to} className="w-full">

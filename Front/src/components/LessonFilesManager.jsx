@@ -3,12 +3,12 @@ import api from "../API";
 import "../styles/LessonFiles.css";
 
 /**
- * Componente para gestionar archivos de lecciones de forma segura
- * - Upload: Solo tutores que crearon la lección
- * - Download: Tutores y estudiantes asignados
- * - Delete: Solo tutores que crearon la lección
+ * Component to manage lesson files securely
+ * - Upload: Only tutors who created the lesson
+ * - Download: Tutors and assigned students
+ * - Delete: Only tutors who created the lesson
  *
- * Usa backend como proxy para acceder a GitHub de forma segura
+ * Uses backend as proxy to access GitHub securely
  */
 
 export default function LessonFilesManager({
@@ -23,12 +23,12 @@ export default function LessonFilesManager({
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Cargar lista de archivos al montar
+  // Load file list when mounting
   useEffect(() => {
     loadFiles();
   }, [lessonId, token]);
 
-  // Limpiar mensajes después de 5 segundos
+  // Clear messages after 5 seconds
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(null), 5000);
@@ -37,11 +37,11 @@ export default function LessonFilesManager({
   }, [success]);
 
   /**
-   * Carga la lista de archivos de una lección desde el backend
+   * Loads the list of files for a lesson from the backend
    */
   const loadFiles = async () => {
     if (!token) {
-      setError("No autorizado");
+      setError("Not authorized");
       setLoading(false);
       return;
     }
@@ -55,7 +55,7 @@ export default function LessonFilesManager({
     } catch (err) {
       console.error("Error loading files:", err);
       if (err.response?.status === 404) {
-        // Sin archivos aún
+        // No files yet
         setFiles([]);
       } else {
         setError(err.response?.data?.error || "Error loading files");
@@ -66,8 +66,8 @@ export default function LessonFilesManager({
   };
 
   /**
-   * Sube un archivo de forma segura al backend
-   * El backend lo sube a GitHub usando su token privado
+   * Uploads a file securely to the backend
+   * The backend uploads it to GitHub using its private token
    */
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -91,12 +91,12 @@ export default function LessonFilesManager({
         }
       );
 
-      setSuccess(`✅ ${file.name} subido exitosamente`);
+      setSuccess(`✅ ${file.name} uploaded successfully`);
 
-      // Recargar lista de archivos
+      // Reload file list
       await loadFiles();
 
-      // Limpiar input
+      // Clear input
       if (e.target instanceof HTMLInputElement) {
         e.target.value = "";
       }
@@ -109,8 +109,8 @@ export default function LessonFilesManager({
   };
 
   /**
-   * Descarga un archivo de forma segura desde el backend
-   * El backend valida permisos antes de servir desde GitHub
+   * Downloads a file securely from the backend
+   * The backend validates permissions before serving from GitHub
    */
   const handleDownload = async (fileName) => {
     try {
@@ -137,7 +137,7 @@ export default function LessonFilesManager({
   };
 
   /**
-   * Abre un PDF en el navegador (inline)
+   * Opens a PDF in the browser (inline)
    */
   const handleViewPDF = (fileName) => {
     const viewUrl = `/lessons/${lessonId}/view-file/${encodeURIComponent(fileName)}`;
@@ -145,10 +145,10 @@ export default function LessonFilesManager({
   };
 
   /**
-   * Elimina un archivo (solo tutores)
+   * Deletes a file (tutors only)
    */
   const handleDelete = async (fileName) => {
-    if (!confirm(`¿Estás seguro de que deseas eliminar ${fileName}?`)) {
+    if (!confirm(`Are you sure you want to delete ${fileName}?`)) {
       return;
     }
 
@@ -157,7 +157,7 @@ export default function LessonFilesManager({
         `/lessons/${lessonId}/files/${encodeURIComponent(fileName)}`
       );
 
-      setSuccess(`✅ ${fileName} eliminado`);
+      setSuccess(`✅ ${fileName} deleted`);
       await loadFiles();
     } catch (err) {
       console.error("Error deleting file:", err);
@@ -197,10 +197,10 @@ export default function LessonFilesManager({
   return (
     <div className="lesson-files-manager">
       <div className="files-header">
-        <h3>📁 Archivos de la Lección</h3>
+        <h3>📁 Lesson Files</h3>
       </div>
 
-      {/* Alertas */}
+      {/* Alerts */}
       {error && (
         <div className="alert alert-error" role="alert">
           {error}
@@ -219,7 +219,7 @@ export default function LessonFilesManager({
         </div>
       )}
 
-      {/* Sección de Upload (solo tutores) */}
+      {/* Upload Section (tutors only) */}
       {canUpload && (
         <div className="upload-section">
           <label htmlFor="file-input" className="upload-label">
@@ -232,22 +232,22 @@ export default function LessonFilesManager({
               className="file-input"
             />
             <span className="upload-button">
-              {uploading ? "Subiendo..." : "⬆️ Subir Archivo"}
+              {uploading ? "Uploading..." : "⬆️ Upload File"}
             </span>
           </label>
           <p className="upload-help">
-            Máximo 50MB. Formatos: PDF, imágenes, video, audio
+            Maximum 50MB. Formats: PDF, images, video, audio
           </p>
         </div>
       )}
 
-      {/* Sección de Archivos */}
+      {/* File Section */}
       <div className="files-section">
         {loading ? (
-          <div className="loading">Cargando archivos...</div>
+          <div className="loading">Loading files...</div>
         ) : files.length === 0 ? (
           <div className="no-files">
-            Sin archivos {canUpload && "- sube tu primer archivo"}
+            No files {canUpload && "- upload your first file"}
           </div>
         ) : (
           <div className="files-list">
@@ -269,18 +269,18 @@ export default function LessonFilesManager({
                   <button
                     className="btn btn-primary"
                     onClick={() => handleDownload(file.name)}
-                    title="Descargar archivo"
+                    title="Download file"
                   >
-                    📥 Descargar
+                    📥 Download
                   </button>
 
                   {canDelete && (
                     <button
                       className="btn btn-danger"
                       onClick={() => handleDelete(file.name)}
-                      title="Eliminar archivo"
+                      title="Delete file"
                     >
-                      🗑️ Eliminar
+                      🗑️ Delete
                     </button>
                   )}
                 </div>

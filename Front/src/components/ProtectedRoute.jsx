@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!isAuthenticated) {
         localStorage.setItem(
             'redirectMessage',
-            'Debes iniciar sesión para acceder a esta página'
+            'You must log in to access this page'
         );
         return <Navigate to="/login" replace />;
     }
@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (allowedRoles && !hasRole(allowedRoles)) {
         localStorage.setItem(
             'redirectMessage',
-            'No tienes permisos para acceder a esta página'
+            'You do not have permission to access this page'
         );
         return <Navigate to="/home" replace />;
     }

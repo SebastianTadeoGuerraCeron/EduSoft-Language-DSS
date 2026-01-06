@@ -139,7 +139,7 @@ const Upgrade = () => {
                     const data = await subscribeWithSavedCard(selectedPlan);
                     
                     if (data.success) {
-                        setSuccessMessage('¡Suscripción creada exitosamente! Tu cuenta ha sido actualizada a Premium.');
+                        setSuccessMessage('✅ Subscription created successfully! Your account has been updated to Premium.');
                         // Refrescar usuario para obtener el nuevo rol
                         if (refreshUser) {
                             await refreshUser();
@@ -183,7 +183,7 @@ const Upgrade = () => {
 
             // El backend siempre procesará directamente con datos de tarjeta
             if (data.success) {
-                setSuccessMessage('¡Suscripción creada exitosamente! Tu cuenta ha sido actualizada a Premium.');
+                setSuccessMessage('✅ Subscription created successfully! Your account has been updated to Premium.');
                 if (refreshUser) {
                     await refreshUser();
                 }
