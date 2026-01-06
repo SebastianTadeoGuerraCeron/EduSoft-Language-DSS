@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { getStudentLessons } from "../services/lessonService";
 import "../styles/StudentLessons.css";
@@ -6,6 +7,7 @@ import StudentLesson from "./StudentLesson";
 
 export default function StudentLessons() {
   const { hasRole } = useAuth();
+  const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -86,8 +88,9 @@ export default function StudentLessons() {
                   <h3>{lesson.title}</h3>
                   <div className="lesson-badges">
                     <span
-                      className={`badge ${lesson.isPremium ? "premium" : "free"
-                        }`}
+                      className={`badge ${
+                        lesson.isPremium ? "premium" : "free"
+                      }`}
                     >
                       {lesson.isPremium ? "PRO" : "FREE"}
                     </span>
@@ -155,7 +158,10 @@ export default function StudentLessons() {
                 </div>
 
                 {isLocked ? (
-                  <button className="btn-locked" disabled>
+                  <button
+                    className="btn-locked"
+                    onClick={() => navigate("/billing/pricing")}
+                  >
                     🔒 Upgrade to Access
                   </button>
                 ) : (
@@ -166,8 +172,8 @@ export default function StudentLessons() {
                     {progress?.percentage === 100
                       ? "Review Lesson"
                       : progress?.percentage > 0
-                        ? "Continue Learning"
-                        : "Start Lesson"}
+                      ? "Continue Learning"
+                      : "Start Lesson"}
                   </button>
                 )}
               </div>

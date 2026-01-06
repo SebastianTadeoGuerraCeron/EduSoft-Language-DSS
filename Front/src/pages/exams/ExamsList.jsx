@@ -206,10 +206,13 @@ export default function ExamsList() {
                     // Student actions
                     <button
                       className="btn-primary"
-                      onClick={() => handleExamClick(exam)}
-                      disabled={isLocked}
+                      onClick={() =>
+                        isLocked
+                          ? navigate("/billing/pricing")
+                          : handleExamClick(exam)
+                      }
                     >
-                      {isLocked ? "Requires PRO" : "Start Exam"}
+                      {isLocked ? "🔒 Upgrade to Access" : "Start Exam"}
                     </button>
                   )}
                 </div>
