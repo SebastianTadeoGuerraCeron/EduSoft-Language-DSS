@@ -4,8 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import '../../styles/Billing.css';
 
 /**
- * Página de Pago Exitoso
- * Se muestra después de completar el checkout en Stripe
+ * Payment Success Page
+ * Shown after completing checkout on Stripe
  */
 const Success = () => {
     const navigate = useNavigate();
@@ -16,11 +16,11 @@ const Success = () => {
     const sessionId = searchParams.get('session_id');
 
     useEffect(() => {
-        // Simular verificación de la sesión
+        // Simulate payment verification
         const verifyPayment = async () => {
             try {
-                // En producción, verificaríamos con el backend
-                // que la sesión de Stripe es válida
+                // In production, we would verify with the backend
+                // that the Stripe session is valid
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
                 // Actualizar el rol del usuario a PRO

@@ -4,10 +4,10 @@ import axios from "axios";
 import "../styles/LessonEdit.css";
 
 /**
- * Componente para editar lecciones existentes
- * Permite:
- * - Editar contenido y título de módulos
- * - Eliminar módulos (mínimo 1 requerido)
+ * Component to edit existing lessons
+ * Allows:
+ * - Edit module content and title
+ * - Delete modules (minimum 1 required)
  */
 export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
   const { user } = useAuth();
@@ -53,14 +53,14 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
   };
 
   const handleRemoveModule = (idx) => {
-    // Validación: debe haber al menos 1 módulo
+    // Validation: must have at least 1 module
     if (editingModules.length <= 1) {
-      setError("❌ No puedes eliminar el único módulo. Debe haber al menos uno.");
+      setError("❌ You cannot delete the only module. There must be at least one.");
       setTimeout(() => setError(""), 4000);
       return;
     }
 
-    // Mostrar confirmación
+    // Show confirmation
     setConfirmDelete({
       moduleIndex: idx,
       moduleTitle: editingModules[idx].titulo,
@@ -78,21 +78,21 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
 
   const handleSave = async () => {
     try {
-      // Validación: al menos 1 módulo
+      // Validation: at least 1 module
       if (editingModules.length === 0) {
-        setError("❌ Se requiere al menos un módulo");
+        setError("❌ At least one module is required");
         return;
       }
 
-      // Validación: cada módulo debe tener título y contenido
+      // Validation: each module must have title and content
       for (let i = 0; i < editingModules.length; i++) {
         const module = editingModules[i];
         if (!module.titulo.trim()) {
-          setError(`❌ El módulo ${i + 1} debe tener un título`);
+          setError(`❌ Module ${i + 1} must have a title`);
           return;
         }
         if (!module.contenido.trim()) {
-          setError(`❌ El módulo ${i + 1} debe tener contenido`);
+          setError(`❌ Module ${i + 1} must have content`);
           return;
         }
       }
@@ -117,7 +117,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
         }
       );
 
-      setSuccess("✅ ¡Cambios guardados exitosamente!");
+      setSuccess("✅ Changes saved successfully!");
 
       // Cerrar después de 2 segundos
       setTimeout(() => {
@@ -128,7 +128,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
       }, 2000);
     } catch (err) {
       console.error("Error saving lesson:", err);
-      setError(err.response?.data?.error || "Error al guardar los cambios");
+      setError(err.response?.data?.error || "Error saving changes");
     } finally {
       setLoading(false);
     }
@@ -141,43 +141,43 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
           ✕
         </button>
 
-        <h2>📝 Editar Lección</h2>
+        <h2>📝 Edit Lesson</h2>
 
         {error && <div className="alert alert-error">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
 
-        {/* Editar módulos */}
+        {/* Edit modules */}
         <div className="modules-edit-section">
-          <h3>Módulos ({editingModules.length})</h3>
+          <h3>Modules ({editingModules.length})</h3>
           {editingModules.length === 0 ? (
-            <p className="no-modules">No hay módulos para editar</p>
+            <p className="no-modules">No modules to edit</p>
           ) : (
             editingModules.map((module, idx) => (
               <div key={idx} className="module-edit-card">
                 <div className="module-header">
-                  <h4>Módulo {idx + 1}</h4>
+                  <h4>Module {idx + 1}</h4>
                   <button
                     className="btn-remove-module"
                     onClick={() => handleRemoveModule(idx)}
                     disabled={editingModules.length <= 1}
                     title={
                       editingModules.length <= 1
-                        ? "No puedes eliminar el único módulo"
-                        : "Eliminar módulo"
+                        ? "You cannot delete the only module"
+                        : "Delete module"
                     }
                   >
-                    ✕ Eliminar
+                    ✕ Delete
                   </button>
                 </div>
 
-                {/* Editar título del módulo */}
+                {/* Edit module title */}
                 <div className="form-group">
-                  <label>Título del módulo</label>
+                  <label>Module Title</label>
                   <input
                     type="text"
                     value={module.titulo}
                     onChange={(e) => handleEditModuleTitle(idx, e.target.value)}
-                    placeholder="Título del módulo"
+                    placeholder="Module Title"
                     maxLength={CHAR_LIMITS.moduleTitle}
                   />
                   <span className="char-count">
@@ -185,13 +185,13 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
                   </span>
                 </div>
 
-                {/* Editar contenido del módulo */}
+                {/* Edit module content */}
                 <div className="form-group">
-                  <label>Contenido del módulo</label>
+                  <label>Module Content</label>
                   <textarea
                     value={module.contenido}
                     onChange={(e) => handleEditModuleContent(idx, e.target.value)}
-                    placeholder="Contenido del módulo"
+                    placeholder="Module Content"
                     rows="6"
                   />
                   <span className="char-count">
@@ -203,52 +203,52 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
           )}
         </div>
 
-        {/* Botones de acción */}
+        {/* Action buttons */}
         <div className="edit-actions">
           <button
             className="btn-cancel"
             onClick={onClose}
             disabled={loading}
           >
-            Cancelar
+            Cancel
           </button>
           <button
             className="btn-save"
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Guardando..." : "✓ Guardar Cambios"}
+            {loading ? "Saving..." : "✓ Save Changes"}
           </button>
         </div>
       </div>
 
-      {/* Modal de confirmación para eliminar módulo */}
+      {/* Confirmation modal to delete module */}
       {confirmDelete && (
         <div className="confirmation-overlay" onClick={() => setConfirmDelete(null)}>
           <div
             className="confirmation-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>⚠️ Confirmar eliminación</h3>
+            <h3>⚠️ Confirm Deletion</h3>
             <p>
-              ¿Estás seguro de que deseas eliminar el módulo{" "}
+              Are you sure you want to delete the module{" "}
               <strong>"{confirmDelete.moduleTitle}"</strong>?
             </p>
             <p className="confirmation-hint">
-              Esta acción no se puede deshacer.
+              This action cannot be undone.
             </p>
             <div className="confirmation-actions">
               <button
                 className="btn-confirmation-cancel"
                 onClick={() => setConfirmDelete(null)}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 className="btn-confirmation-delete"
                 onClick={confirmRemoveModule}
               >
-                ✕ Eliminar
+                ✕ Delete
               </button>
             </div>
           </div>

@@ -107,10 +107,10 @@ export const Grammar = () => {
 				onClick={() => move(w, fromDock)}
 				onKeyDown={handleKeyDown}
 				tabIndex={verified ? -1 : 0}
-				aria-label={`Palabra: ${w}. ${
+				aria-label={`Word: ${w}. ${
 					fromDock
-						? 'Presiona para mover a la oración'
-						: 'Presiona para devolver al banco'
+						? 'Press to move to the sentence'
+						: 'Press to return to the bank'
 				}`}
 				className={`px-3 py-1 m-1 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all ${
 					correct

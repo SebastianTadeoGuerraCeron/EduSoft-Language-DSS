@@ -78,7 +78,7 @@ const PrivateNavbar = () => {
 				{/* Hamburger for mobile */}
 				<button
 					className="md:hidden flex items-center justify-center p-2 rounded focus:outline-2 focus:outline-blue-400"
-					aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+					aria-label={menuOpen ? "Close menu" : "Open menu"}
 					onClick={() => setMenuOpen((v) => !v)}
 				>
 					<img src={burgerIcon} alt="Menu" className="w-6 h-6" />
@@ -91,8 +91,8 @@ const PrivateNavbar = () => {
 							<Link
 								to={link.to}
 								className={`relative leading-[21px] font-medium px-3 py-2 rounded-lg transition-colors duration-150 flex items-center gap-2 ${isActiveLink(link.to)
-										? "bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]"
-										: "text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]"
+									? "bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]"
+									: "text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]"
 									}`}
 							>
 								{link.icon && link.icon}
@@ -118,18 +118,18 @@ const PrivateNavbar = () => {
 			{/* Mobile nav */}
 			<ul
 				className={`md:hidden flex flex-col items-center gap-2 bg-white border-t border-[#e6e8eb] px-4 py-2 transition-all duration-200 ${menuOpen
-						? "max-h-96 opacity-100"
-						: "max-h-0 opacity-0 overflow-hidden"
+					? "max-h-96 opacity-100"
+					: "max-h-0 opacity-0 overflow-hidden"
 					}`}
-				aria-label="Menú de navegación"
+				aria-label="Navigation menu"
 			>
 				{navLinks.map((link) => (
 					<li key={link.to} className="w-full">
 						<Link
 							to={link.to}
 							className={`block w-full px-3 py-3 text-base font-medium rounded-lg transition-colors duration-150 text-center flex items-center justify-center gap-2 ${isActiveLink(link.to)
-									? "bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]"
-									: "text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]"
+								? "bg-[#e8edf2] text-[#1d7fc1] hover:bg-[#d1dee8]"
+								: "text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]"
 								}`}
 							onClick={() => setMenuOpen(false)}
 						>

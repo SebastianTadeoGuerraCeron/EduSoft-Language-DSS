@@ -29,7 +29,7 @@ export default function LessonCreation() {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // Character limits
+  // Límites de caracteres
   const CHAR_LIMITS = {
     title: 100,
     description: 500,
@@ -37,14 +37,14 @@ export default function LessonCreation() {
     moduleContent: 2000,
   };
 
-  // File upload limits
+  // Límites de tamaño de archivo
   const FILE_LIMITS = {
     maxFileSize: 10 * 1024 * 1024, // 10MB por archivo
     maxTotalSize: 50 * 1024 * 1024, // 50MB total
     maxFiles: 10, // Máximo 10 archivos
   };
 
-  // Auto-hide success toast
+  // Ocultar automáticamente el toast de éxito
   useEffect(() => {
     if (showToast) {
       const timer = setTimeout(() => {
@@ -145,21 +145,21 @@ export default function LessonCreation() {
 
       // Validar título (obligatorio)
       if (!formData.title.trim()) {
-        setError("El título de la lección es obligatorio");
+        setError("The lesson title is required");
         setLoading(false);
         return;
       }
 
       // Validar descripción (obligatoria)
       if (!formData.description.trim()) {
-        setError("La descripción es obligatoria");
+        setError("Description is required");
         setLoading(false);
         return;
       }
 
       // Validar mínimo 1 módulo
       if (formData.modules.length === 0) {
-        setError("Se requiere al menos un módulo");
+        setError("At least one module is required");
         setLoading(false);
         return;
       }
@@ -168,12 +168,12 @@ export default function LessonCreation() {
       for (let i = 0; i < formData.modules.length; i++) {
         const module = formData.modules[i];
         if (!module.titulo.trim()) {
-          setError(`El módulo ${i + 1} debe tener un título`);
+          setError(`Module ${i + 1} must have a title`);
           setLoading(false);
           return;
         }
         if (!module.contenido.trim()) {
-          setError(`El módulo ${i + 1} debe tener contenido`);
+          setError(`Module ${i + 1} must have content`);
           setLoading(false);
           return;
         }
@@ -208,7 +208,7 @@ export default function LessonCreation() {
         setUploading(false);
       }
 
-      setSuccess("✅ ¡Lección creada exitosamente!");
+      setSuccess("✅ Lesson created successfully!");
       setShowToast(true);
       setFormData({
         title: "",
@@ -234,7 +234,7 @@ export default function LessonCreation() {
     
     // Validar cantidad de archivos
     if (pendingFiles.length + files.length > FILE_LIMITS.maxFiles) {
-      setError(`❌ Máximo ${FILE_LIMITS.maxFiles} archivos permitidos. Ya tienes ${pendingFiles.length}`);
+      setError(`❌ Maximum ${FILE_LIMITS.maxFiles} files allowed. You already have ${pendingFiles.length}`);
       return;
     }
 
@@ -245,7 +245,7 @@ export default function LessonCreation() {
       // Validar tamaño individual
       if (file.size > FILE_LIMITS.maxFileSize) {
         setError(
-          `❌ Archivo "${file.name}" es muy grande (${(file.size / 1024 / 1024).toFixed(2)}MB). Máximo permitido: 10MB`
+          `❌ File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed: 10MB`
         );
         return;
       }
@@ -255,7 +255,7 @@ export default function LessonCreation() {
     // Validar tamaño total
     if (currentTotalSize + totalNewSize > FILE_LIMITS.maxTotalSize) {
       setError(
-        `❌ El tamaño total de archivos excede 50MB. Tienes ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB + intenta agregar ${(totalNewSize / 1024 / 1024).toFixed(2)}MB`
+        `❌ Total file size exceeds 50MB. You have ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB + trying to add ${(totalNewSize / 1024 / 1024).toFixed(2)}MB`
       );
       return;
     }
@@ -263,7 +263,7 @@ export default function LessonCreation() {
     // Validar que sean PDFs
     for (const file of files) {
       if (!file.name.toLowerCase().endsWith(".pdf")) {
-        setError(`❌ Solo se permiten archivos PDF. "${file.name}" no es un PDF`);
+        setError(`❌ Only PDF files are allowed. "${file.name}" is not a PDF`);
         return;
       }
     }
@@ -471,8 +471,8 @@ export default function LessonCreation() {
 
         {/* Files Section (Optional) */}
         <section className="form-section">
-          <h2>📁 Archivos para la Lección (Opcional)</h2>
-          <p className="info-text">Sube archivos PDF para tu lección.</p>
+          <h2>📁 Lesson Files (Optional)</h2>
+          <p className="info-text">Upload PDF files for your lesson.</p>
           
           <div className="file-upload-area">
             <input
@@ -483,14 +483,14 @@ export default function LessonCreation() {
               accept=".pdf"
             />
             <label htmlFor="lesson-files" className="file-upload-label">
-              <span>📎 Selecciona archivos PDF</span>
-              <small>Solo archivos PDF</small>
+              <span>📎 Select PDF files</span>
+              <small>PDF files only</small>
             </label>
           </div>
 
           {pendingFiles.length > 0 && (
             <div className="pending-files-list">
-              <h4>Archivos a subir ({pendingFiles.length}):</h4>
+              <h4>Files to upload ({pendingFiles.length}):</h4>
               <ul>
                 {pendingFiles.map((file, idx) => (
                   <li key={idx}>
