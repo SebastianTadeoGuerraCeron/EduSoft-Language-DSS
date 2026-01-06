@@ -45,7 +45,9 @@ const createUserCtrl = async (req: Request, res: Response) => {
     const hashedAnswerSecret = await hashPassword(sanitizedAnswerSecret);
 
     // Determinar rol (por defecto STUDENT_FREE)
-    const userRole = role || "STUDENT_FREE";
+    // Validar que el rol sea válido (TUTOR o STUDENT_FREE)
+    const validRoles = ["TUTOR", "STUDENT_FREE"];
+    const userRole = validRoles.includes(role) ? role : "STUDENT_FREE";
 
     const user = await prisma.user.create({
       data: {
