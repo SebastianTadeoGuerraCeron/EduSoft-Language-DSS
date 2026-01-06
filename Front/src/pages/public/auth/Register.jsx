@@ -15,6 +15,7 @@ export const Register = () => {
 		password: '',
 		confirmPassword: '',
 		answerSecret: '',
+		role: 'STUDENT_FREE',
 	});
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
@@ -86,6 +87,7 @@ export const Register = () => {
 					username: form.username,
 					password: form.password,
 					answerSecret: form.answerSecret,
+					role: form.role,
 				}),
 			});
 			const data = await res.json();
@@ -97,6 +99,7 @@ export const Register = () => {
 					password: '',
 					confirmPassword: '',
 					answerSecret: '',
+					role: 'STUDENT_FREE',
 				});
 				setPasswordStrength({ level: 'none', label: '', color: '' });
 			} else {
@@ -184,6 +187,42 @@ export const Register = () => {
 										{fieldErrors.username}
 									</span>
 								)}
+							</div>
+							<div className='flex flex-col items-start'>
+								<label htmlFor='role' className='leading-6 font-medium'
+									tabIndex={0}>
+									Account Type{' '}
+									<span className='text-red-600' aria-hidden='true'>
+										*
+									</span>
+									<span className='sr-only'>(required)</span>
+								</label>
+								<div className='self-stretch flex gap-3'>
+									<button
+										type='button'
+										onClick={() => setForm({ ...form, role: 'STUDENT_FREE' })}
+										className={`flex-1 rounded-xl border-2 border-solid box-border h-12 md:h-14 p-3 md:p-[15px] text-base md:text-lg font-semibold transition-all duration-150 ${
+											form.role === 'STUDENT_FREE'
+												? 'bg-[#add1eb] border-[#5fa3d1] text-[#0f141a]'
+												: 'bg-[#fafafa] border-[#d4dee3] text-[#4C7490] hover:bg-[#f0f3f5]'
+										}`}
+										aria-pressed={form.role === 'STUDENT_FREE'}
+									>
+										Student
+									</button>
+									<button
+										type='button'
+										onClick={() => setForm({ ...form, role: 'TUTOR' })}
+										className={`flex-1 rounded-xl border-2 border-solid box-border h-12 md:h-14 p-3 md:p-[15px] text-base md:text-lg font-semibold transition-all duration-150 ${
+											form.role === 'TUTOR'
+												? 'bg-[#add1eb] border-[#5fa3d1] text-[#0f141a]'
+												: 'bg-[#fafafa] border-[#d4dee3] text-[#4C7490] hover:bg-[#f0f3f5]'
+										}`}
+										aria-pressed={form.role === 'TUTOR'}
+									>
+										Tutor
+									</button>
+								</div>
 							</div>
 							<div className='flex flex-col items-start relative'>
 								<label htmlFor='password' className='leading-6 font-medium'
