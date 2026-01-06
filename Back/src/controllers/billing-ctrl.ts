@@ -348,6 +348,64 @@ export const cancelSubscriptionCtrl = async (req: AuthRequest, res: Response) =>
       return;
     }
 
+    // First check the subscription status in Stripe
+    console.log('[cancelSubscriptionCtrl] Checking subscription status in Stripe:', subscription.stripeSubscriptionId);
+    const stripeSubscription = await stripeService.getSubscription(subscription.stripeSubscriptionId);
+
+    console.log('[cancelSubscriptionCtrl] Stripe subscription status:', {
+      exists: !!stripeSubscription,
+      status: stripeSubscription?.status,
+      cancel_at_period_end: stripeSubscription?.cancel_at_period_end,
+    });
+
+    // If subscription doesn't exist or is already canceled/not active in Stripe
+    const inactiveStatuses = ["canceled", "incomplete_expired", "unpaid"];
+    if (!stripeSubscription || inactiveStatuses.includes(stripeSubscription.status)) {
+      console.log('[cancelSubscriptionCtrl] Subscription already canceled/inactive in Stripe, syncing local DB');
+      
+      // Just sync the local database
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          status: "CANCELED",
+          autoRenewal: false,
+          canceledAt: subscription.canceledAt || new Date(),
+        },
+      });
+
+      // Update user role to FREE
+      await prisma.user.update({
+        where: { id: userId },
+        data: { role: "STUDENT_FREE" },
+      });
+
+      res.json({
+        message: "Subscription was already canceled. Your account has been updated.",
+        alreadyCanceled: true,
+      });
+      return;
+    }
+
+    // If already set to cancel at period end and user wants period-end cancel, nothing to do
+    if (!immediate && stripeSubscription.cancel_at_period_end) {
+      console.log('[cancelSubscriptionCtrl] Subscription already set to cancel at period end');
+      
+      // Sync local DB
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          autoRenewal: false,
+          canceledAt: subscription.canceledAt || new Date(),
+        },
+      });
+
+      res.json({
+        message: "Subscription is already scheduled to cancel at the end of the billing period.",
+        alreadyCanceled: true,
+      });
+      return;
+    }
+
     console.log('[cancelSubscriptionCtrl] Cancelling subscription in Stripe:', subscription.stripeSubscriptionId);
 
     // Cancelar en Stripe
@@ -416,6 +474,29 @@ export const reactivateSubscriptionCtrl = async (req: AuthRequest, res: Response
 
     if (!subscription || !subscription.stripeSubscriptionId) {
       res.status(404).json({ error: "No subscription found to reactivate" });
+      return;
+    }
+
+    // First check the subscription status in Stripe
+    const stripeSubscription = await stripeService.getSubscription(subscription.stripeSubscriptionId);
+
+    if (!stripeSubscription) {
+      res.status(404).json({ error: "Subscription not found in Stripe" });
+      return;
+    }
+
+    // If the subscription is fully canceled, it cannot be reactivated
+    if (stripeSubscription.status === "canceled") {
+      res.status(400).json({ 
+        error: "This subscription has been fully canceled and cannot be reactivated. Please create a new subscription.",
+        requiresNewSubscription: true
+      });
+      return;
+    }
+
+    // Only reactivate if it's active but scheduled to cancel
+    if (!stripeSubscription.cancel_at_period_end) {
+      res.status(400).json({ error: "This subscription is already active and not scheduled for cancellation" });
       return;
     }
 
@@ -495,9 +576,37 @@ export const getSubscriptionStatusCtrl = async (req: AuthRequest, res: Response)
       select: { role: true },
     });
 
-    const subscription = await prisma.subscription.findUnique({
+    let subscription = await prisma.subscription.findUnique({
       where: { userId },
     });
+
+    // Sync with Stripe if we have a subscription
+    if (subscription?.stripeSubscriptionId) {
+      try {
+        const stripeSubscription = await stripeService.getSubscription(subscription.stripeSubscriptionId);
+        
+        if (stripeSubscription) {
+          // Check if there's a mismatch and sync
+          const stripeAutoRenewal = !stripeSubscription.cancel_at_period_end;
+          const stripeStatus = stripeSubscription.status === "active" ? "ACTIVE" : 
+                              stripeSubscription.status === "canceled" ? "CANCELED" : subscription.status;
+          
+          if (subscription.autoRenewal !== stripeAutoRenewal || subscription.status !== stripeStatus) {
+            // Update local DB to match Stripe
+            subscription = await prisma.subscription.update({
+              where: { userId },
+              data: {
+                autoRenewal: stripeAutoRenewal,
+                status: stripeStatus,
+                canceledAt: stripeAutoRenewal ? null : subscription.canceledAt,
+              },
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Could not sync with Stripe:", e);
+      }
+    }
 
     // Obtener información de tarjeta (solo últimos 4 dígitos)
     const billingPrisma = getBillingPrisma();

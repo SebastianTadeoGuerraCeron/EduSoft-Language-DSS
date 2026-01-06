@@ -119,7 +119,12 @@ const Subscription = () => {
             await loadData();
         } catch (err) {
             console.error('Error reactivating subscription:', err);
-            setError('Failed to reactivate auto-renewal.');
+            // Check if subscription requires a new subscription
+            if (err.response?.data?.requiresNewSubscription) {
+                navigate('/billing/pricing');
+            } else {
+                setError(err.response?.data?.error || 'Failed to reactivate auto-renewal.');
+            }
         } finally {
             setReactivating(false);
         }

@@ -175,9 +175,16 @@ export const getSubscription = async (
   subscriptionId: string
 ): Promise<Stripe.Subscription | null> => {
   try {
-    return await stripe.subscriptions.retrieve(subscriptionId);
-  } catch (error) {
-    console.error("Error retrieving subscription:", error);
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    console.log('[getSubscription] Retrieved subscription:', {
+      id: subscription.id,
+      status: subscription.status,
+      cancel_at_period_end: subscription.cancel_at_period_end,
+      canceled_at: subscription.canceled_at,
+    });
+    return subscription;
+  } catch (error: any) {
+    console.error("[getSubscription] Error retrieving subscription:", error?.message || error);
     return null;
   }
 };
