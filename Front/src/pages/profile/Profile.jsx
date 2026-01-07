@@ -4,13 +4,17 @@ import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../API';
 import FontControls from '../../components/FontControl';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
+import DeleteAccountModal from '../../components/DeleteAccountModal';
 import { getPaymentHistory, formatSubscriptionDate, formatPrice } from '../../services/billingService';
+import { deleteUserAccount } from '../../services/userService';
 
 export const Profile = () => {
 	const [profileUpdateMessage, setProfileUpdateMessage] = useState('');
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 	const [showLogoutModal, setShowLogoutModal] = useState(false);
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [deletingAccount, setDeletingAccount] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem('user') || '{}');
 	const username = user?.username || 'Your Profile';
@@ -141,6 +145,26 @@ export const Profile = () => {
 		setShowLogoutModal(false);
 		logout();
 		navigate('/');
+	};
+
+	const handleDeleteAccount = () => {
+		setShowDeleteModal(true);
+	};
+
+	const confirmDeleteAccount = async (password) => {
+		try {
+			setDeletingAccount(true);
+			await deleteUserAccount(password);
+			
+			// Limpiar sesión y redirigir
+			logout();
+			navigate('/', { state: { accountDeleted: true } });
+		} catch (error) {
+			console.error('Error deleting account:', error);
+			throw new Error(error.response?.data?.error || 'Failed to delete account');
+		} finally {
+			setDeletingAccount(false);
+		}
 	};
 
 	return (
@@ -439,6 +463,18 @@ export const Profile = () => {
 									</div>
 								</section>
 							)}
+
+							{/* Delete Account Button - HU10 */}
+							<section className='self-stretch px-4 py-6 border-t border-[#d4dee3]'>
+								<button
+									onClick={handleDeleteAccount}
+									className='rounded-[20px] bg-red-100 hover:bg-red-200 h-10 flex items-center justify-center px-6 font-medium focus:outline-2 focus:outline-red-400 transition-colors duration-150 text-red-700'
+									tabIndex={0}
+									title='Permanently delete your account and all data'
+								>
+									Delete Account
+								</button>
+							</section>
 						</div>
 					</header>
 				</section>
@@ -452,6 +488,14 @@ export const Profile = () => {
 				onCancel={() => setShowLogoutModal(false)}
 				confirmText="Sign Out"
 				cancelText="Cancel"
+			/>
+
+			<DeleteAccountModal
+				isOpen={showDeleteModal}
+				username={username}
+				loading={deletingAccount}
+				onConfirm={confirmDeleteAccount}
+				onCancel={() => setShowDeleteModal(false)}
 			/>
 		</main>
 	);

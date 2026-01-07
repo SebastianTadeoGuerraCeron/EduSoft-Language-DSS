@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import {
   createUserCtrl,
+  deleteUserAccountCtrl,
   loginUserCtrl,
   recoverPasswordCtrl,
   updateProfileCtrl,
@@ -111,6 +112,19 @@ routerUser.get(
   authenticate as express.RequestHandler,
   authorize("ADMIN", "TUTOR") as express.RequestHandler,
   getSystemStatsCtrl as express.RequestHandler
+);
+
+// ===== Eliminación segura de cuenta (HU10) =====
+/**
+ * DELETE /user/delete-account
+ * Eliminar cuenta de usuario de forma segura
+ * Requiere autenticación + contraseña en body
+ * Aplica a: TUTOR, STUDENT_PRO, STUDENT_FREE (no ADMIN)
+ */
+routerUser.delete(
+  "/delete-account",
+  authenticate as express.RequestHandler,
+  deleteUserAccountCtrl as express.RequestHandler
 );
 
 export { routerUser };
