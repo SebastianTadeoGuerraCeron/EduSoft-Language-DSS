@@ -1,23 +1,28 @@
 import express from "express";
 import multer from "multer";
 import {
-  createUserCtrl,
-  loginUserCtrl,
-  recoverPasswordCtrl,
-  updateProfileCtrl,
-  addGameHistory,
-  getUserProgress,
-  getUserRanking,
-  sendEmailCtrl,
-  getMeCtrl,
-} from "../controllers/user-ctrl";
-import {
-  getAllUsersCtrl,
-  updateUserRoleCtrl,
-  getSystemStatsCtrl,
+    getAllUsersCtrl,
+    getSystemStatsCtrl,
+    updateUserRoleCtrl,
 } from "../controllers/admin-ctrl";
+import {
+    addGameHistory,
+    createUserCtrl,
+    getMeCtrl,
+    getUserProgress,
+    getUserRanking,
+    loginUserCtrl,
+    recoverPasswordCtrl,
+    sendEmailCtrl,
+    updateProfileCtrl,
+} from "../controllers/user-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
+import {
+    loginLimiter,
+    passwordRecoveryLimiter,
+    registrationLimiter,
+} from "../middleware/rateLimiter";
 
 const routerUser = express.Router();
 
@@ -34,10 +39,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ===== Rutas públicas (sin autenticación) =====
-routerUser.post("/create", createUserCtrl as express.RequestHandler);
-routerUser.post("/login", loginUserCtrl as express.RequestHandler);
+// HU03: Rate limiters para prevenir ataques de fuerza bruta
+routerUser.post("/create", registrationLimiter, createUserCtrl as express.RequestHandler);
+routerUser.post("/login", loginLimiter, loginUserCtrl as express.RequestHandler);
 routerUser.post(
   "/recover-password",
+  passwordRecoveryLimiter,
   recoverPasswordCtrl as express.RequestHandler
 );
 
