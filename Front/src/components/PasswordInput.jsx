@@ -224,17 +224,6 @@ const PasswordInput = ({
           </ul>
         </div>
       )}
-
-      {/* Validation Errors (shown on blur) */}
-      {touched && !validation.isValid && !error && (
-        <div className="password-errors">
-          {validation.errors.map((err, index) => (
-            <p key={index} className="error-message">
-              <span aria-hidden="true">⚠️</span> {err}
-            </p>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
