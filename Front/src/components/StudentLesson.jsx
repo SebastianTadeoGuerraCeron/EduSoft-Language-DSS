@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getStudentLessonProgress, updateLessonProgress } from "../services/lessonService";
+import { ContentProtection } from "./ContentProtection";
 import LessonFilesManager from "./LessonFilesManager";
 import "../styles/StudentLesson.css";
 
@@ -96,21 +97,29 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
   const isLastModule = currentModuleIndex === lesson.modules.length - 1;
   const isFirstModule = currentModuleIndex === 0;
 
+  const requiresProtection = lesson.isPremium === true;
+
   return (
-    <div className="student-lesson-container">
-      {/* Header */}
-      <div className="lesson-header">
-        <h1>{lesson.title}</h1>
-        <p className="lesson-description">{lesson.description}</p>
-        <div className="lesson-meta">
-          <span className={`level-badge ${lesson.level.toLowerCase()}`}>
-            {lesson.level}
-          </span>
-          <span className={`type-badge ${lesson.type.toLowerCase()}`}>
-            {lesson.type === "VIDEO" ? "Video" : "Text"}
-          </span>
-          {lesson.duration && <span className="duration">{lesson.duration} min</span>}
-        </div>
+    <ContentProtection
+      enabled={requiresProtection}
+      contentType="lesson"
+      userName={user?.username || ''}
+      userEmail={user?.email || ''}
+    >
+      <div className="student-lesson-container">
+        {/* Header */}
+        <div className="lesson-header">
+          <h1>{lesson.title}</h1>
+          <p className="lesson-description">{lesson.description}</p>
+          <div className="lesson-meta">
+            <span className={`level-badge ${lesson.level.toLowerCase()}`}>
+              {lesson.level}
+            </span>
+            <span className={`type-badge ${lesson.type.toLowerCase()}`}>
+              {lesson.type === "VIDEO" ? "Video" : "Text"}
+            </span>
+            {lesson.duration && <span className="duration">{lesson.duration} min</span>}
+          </div>
       </div>
 
       {/* Progress Bar */}
@@ -218,6 +227,7 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
           </p>
         </div>
       )}
-    </div>
+      </div>
+    </ContentProtection>
   );
 }
