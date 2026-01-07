@@ -1,6 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/auth";
+import {
+  logUserActivity,
+  logPremiumAccess,
+  logAdminAction,
+  ActivityAction,
+  ResourceType,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -66,6 +73,16 @@ export const createLessonCtrl = async (req: AuthRequest, res: Response) => {
           select: { id: true, username: true, email: true },
         },
       },
+    });
+
+    // Log de creación de lección
+    await logAdminAction(req, {
+      adminId: userId,
+      action: "CREATE_LESSON",
+      targetResource: lesson.id,
+      resourceType: ResourceType.LESSON,
+      newValue: { title, isPremium, type, level },
+      success: true,
     });
 
     res.status(201).json({ lesson });
@@ -141,6 +158,29 @@ export const getLessonByIdCtrl = async (req: AuthRequest, res: Response) => {
     if (!lesson) {
       res.status(404).json({ error: "Lesson not found" });
       return;
+    }
+
+    // Log de visualización de lección
+    if (req.userId) {
+      await logUserActivity(req, {
+        userId: req.userId,
+        action: ActivityAction.VIEW_LESSON,
+        resource: lesson.id,
+        resourceType: ResourceType.LESSON,
+        success: true,
+        details: { title: lesson.title, isPremium: lesson.isPremium },
+      });
+
+      // Si es premium, también registrar en logs de acceso premium
+      if (lesson.isPremium) {
+        await logPremiumAccess(req, {
+          userId: req.userId,
+          contentType: "LESSON",
+          contentId: lesson.id,
+          contentTitle: lesson.title,
+          accessType: "VIEW",
+        });
+      }
     }
 
     res.json({ lesson });
@@ -446,6 +486,33 @@ export const updateLessonProgressCtrl = async (req: AuthRequest, res: Response) 
           lastAccessAt: new Date(),
         },
       });
+
+      // Log de completar lección
+      if (isCompleted) {
+        await logUserActivity(req, {
+          userId,
+          action: ActivityAction.COMPLETE_LESSON,
+          resource: lessonId,
+          resourceType: ResourceType.LESSON,
+          success: true,
+          details: { 
+            lessonTitle: lesson.title, 
+            totalModules,
+            isPremium: lesson.isPremium,
+          },
+        });
+
+        // Si es premium, registrar acceso completado
+        if (lesson.isPremium) {
+          await logPremiumAccess(req, {
+            userId,
+            contentType: "LESSON",
+            contentId: lessonId,
+            contentTitle: lesson.title,
+            accessType: "COMPLETE",
+          });
+        }
+      }
     }
 
     res.json({ progress });

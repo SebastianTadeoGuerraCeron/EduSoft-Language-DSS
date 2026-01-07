@@ -12,6 +12,11 @@ import type { Response, NextFunction } from "express";
 import type { AuthRequest } from "./auth";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import {
+  logSecurityEvent,
+  SecurityEvent,
+  SecuritySeverity,
+} from "../controllers/audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -67,6 +72,16 @@ export const requireReAuthentication = async (
       // Log de intento fallido de re-autenticación
       console.warn(`Failed re-authentication attempt for user ${userId}`);
       
+      await logSecurityEvent(req, {
+        userId,
+        event: SecurityEvent.REAUTH_FAILED,
+        severity: SecuritySeverity.MEDIUM,
+        details: { 
+          endpoint: req.originalUrl,
+          method: req.method 
+        },
+      });
+      
       res.status(401).json({
         error: "Invalid password",
         message: "The password provided for re-authentication is incorrect",
@@ -75,7 +90,17 @@ export const requireReAuthentication = async (
       return;
     }
 
-    // Re-autenticación exitosa
+    // Re-autenticación exitosa - log
+    await logSecurityEvent(req, {
+      userId,
+      event: SecurityEvent.REAUTH_SUCCESS,
+      severity: SecuritySeverity.LOW,
+      details: { 
+        endpoint: req.originalUrl,
+        method: req.method 
+      },
+    });
+
     req.reAuthenticated = true;
     next();
   } catch (error) {

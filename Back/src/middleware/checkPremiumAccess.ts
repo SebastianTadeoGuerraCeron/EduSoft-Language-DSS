@@ -12,6 +12,11 @@
 import type { Response, NextFunction } from "express";
 import type { AuthRequest } from "./auth";
 import { PrismaClient } from "@prisma/client";
+import {
+  logSecurityEvent,
+  SecurityEvent,
+  SecuritySeverity,
+} from "../controllers/audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -82,6 +87,21 @@ export const checkLessonPremiumAccess = async (
 
     // Si la lección es premium y el usuario es FREE -> denegar
     if (lesson.isPremium) {
+      // Log de acceso denegado a contenido premium
+      if (req.userId) {
+        await logSecurityEvent(req, {
+          userId: req.userId,
+          event: SecurityEvent.PREMIUM_ACCESS_DENIED,
+          severity: SecuritySeverity.LOW,
+          details: {
+            contentType: "LESSON",
+            contentId: lessonId,
+            contentTitle: lesson.title,
+            userRole,
+          },
+        });
+      }
+
       res.status(403).json({
         error: "Premium content",
         message: "This lesson requires a premium subscription",
@@ -138,6 +158,21 @@ export const checkExamPremiumAccess = async (
 
     // Si el examen es premium y el usuario es FREE -> denegar
     if (exam.isPremium) {
+      // Log de acceso denegado a contenido premium
+      if (req.userId) {
+        await logSecurityEvent(req, {
+          userId: req.userId,
+          event: SecurityEvent.PREMIUM_ACCESS_DENIED,
+          severity: SecuritySeverity.LOW,
+          details: {
+            contentType: "EXAM",
+            contentId: examId,
+            contentTitle: exam.title,
+            userRole,
+          },
+        });
+      }
+
       res.status(403).json({
         error: "Premium content",
         message: "This exam requires a premium subscription",

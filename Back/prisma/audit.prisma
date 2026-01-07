@@ -1,0 +1,139 @@
+// Schema para la base de datos de Logs de Auditoría
+// Base de datos separada para mayor seguridad y cumplimiento normativo
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/audit-client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("AUDIT_DATABASE_URL")
+  directUrl = env("AUDIT_DIRECT_URL")
+}
+
+/// Logs de actividad de usuarios en la aplicación
+/// Registra todas las acciones realizadas por los usuarios
+model UserActivityLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  username  String?  // Para referencia rápida sin JOIN
+  email     String?  // Para referencia rápida sin JOIN
+  action    String   // LOGIN, LOGOUT, VIEW_LESSON, COMPLETE_LESSON, START_EXAM, SUBMIT_EXAM, etc.
+  resource  String?  // ID del recurso (lesson_id, exam_id, etc.)
+  resourceType String? @map("resource_type") // LESSON, EXAM, PROFILE, etc.
+  ipAddress String   @map("ip_address")
+  userAgent String?  @map("user_agent")
+  success   Boolean  @default(true)
+  details   String?  @db.Text // JSON con información adicional
+  duration  Int?     // Duración de la actividad en segundos (para lecciones/exámenes)
+  timestamp DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@index([resourceType, timestamp])
+  @@map("user_activity_logs")
+}
+
+/// Logs de seguridad para eventos críticos
+/// Eventos de autenticación, cambios de permisos, intentos de acceso no autorizado
+model SecurityLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id") // Puede ser null para intentos fallidos sin usuario identificado
+  username  String?
+  event     String   // FAILED_LOGIN, PASSWORD_CHANGE, ROLE_CHANGE, REAUTH_SUCCESS, REAUTH_FAILED, SUSPICIOUS_ACTIVITY, etc.
+  severity  String   // LOW, MEDIUM, HIGH, CRITICAL
+  ipAddress String   @map("ip_address")
+  userAgent String?  @map("user_agent")
+  details   String?  @db.Text // JSON con contexto adicional
+  resolved  Boolean  @default(false) // Para seguimiento de incidentes
+  timestamp DateTime @default(now())
+
+  @@index([severity, timestamp])
+  @@index([event, timestamp])
+  @@index([userId, timestamp])
+  @@index([resolved, severity])
+  @@map("security_logs")
+}
+
+/// Logs de errores de la aplicación
+/// Para debugging y monitoreo de salud del sistema
+model ErrorLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  errorType String   @map("error_type") // API_ERROR, DATABASE_ERROR, VALIDATION_ERROR, etc.
+  endpoint  String?  // Ruta API donde ocurrió el error
+  method    String?  // GET, POST, PUT, DELETE
+  message   String   @db.Text
+  stack     String?  @db.Text
+  context   String?  @db.Text // JSON con request body, params, etc.
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  timestamp DateTime @default(now())
+
+  @@index([errorType, timestamp])
+  @@index([endpoint, timestamp])
+  @@index([userId, timestamp])
+  @@map("error_logs")
+}
+
+/// Logs de acceso a contenido premium
+/// Específico para auditoría de acceso a contenido de pago
+model PremiumAccessLog {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  username     String?
+  contentType  String   @map("content_type") // LESSON, EXAM
+  contentId    String   @map("content_id")
+  contentTitle String?  @map("content_title")
+  accessType   String   @map("access_type") // VIEW, DOWNLOAD, COMPLETE
+  ipAddress    String   @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  timestamp    DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([contentType, contentId])
+  @@index([accessType, timestamp])
+  @@map("premium_access_logs")
+}
+
+/// Logs de administración
+/// Acciones realizadas por administradores
+model AdminActionLog {
+  id           String   @id @default(cuid())
+  adminId      String   @map("admin_id")
+  adminEmail   String?  @map("admin_email")
+  action       String   // CREATE_USER, DELETE_USER, MODIFY_ROLE, CREATE_LESSON, etc.
+  targetUserId String?  @map("target_user_id") // Usuario afectado por la acción
+  targetResource String? @map("target_resource") // Recurso afectado
+  resourceType String?  @map("resource_type")
+  oldValue     String?  @map("old_value") @db.Text // Valor anterior (para auditoría de cambios)
+  newValue     String?  @map("new_value") @db.Text // Valor nuevo
+  ipAddress    String   @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  success      Boolean  @default(true)
+  details      String?  @db.Text
+  timestamp    DateTime @default(now())
+
+  @@index([adminId, timestamp])
+  @@index([action, timestamp])
+  @@index([targetUserId, timestamp])
+  @@map("admin_action_logs")
+}
+
+/// Logs de acceso a datos de Billing (migrado de BD billing)
+/// Para auditoría de quién accedió a datos sensibles de pago
+model BillingAccessLog {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  action      String   // CREATE, READ, UPDATE, DELETE, PAYMENT
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  success     Boolean  @default(true)
+  details     String?  @db.Text
+  timestamp   DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@map("billing_access_logs")
+}
