@@ -49,7 +49,7 @@ app.use("/billing/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 
 app.get("/", (_req: Request, res: Response) => {
-  res.send("EduSoft API - Secure Backend 🔒");
+  res.send("EduSoft API - Secure Backend");
 });
 
 app.use("/user", routerUser);
@@ -70,8 +70,8 @@ process.on("SIGTERM", () => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-  console.log(`🔒 CORS enabled for: ${corsOrigins.join(", ")}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`💳 Billing system active`);
+  console.log(`Server running on port ${port}`);
+  console.log(`CORS enabled for: ${corsOrigins.join(", ")}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Billing system active`);
 });

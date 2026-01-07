@@ -212,7 +212,7 @@ export default function ExamsList() {
                           : handleExamClick(exam)
                       }
                     >
-                      {isLocked ? "🔒 Upgrade to Access" : "Start Exam"}
+                      {isLocked ? "Upgrade to Access" : "Start Exam"}
                     </button>
                   )}
                 </div>
