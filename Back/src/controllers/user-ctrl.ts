@@ -104,13 +104,77 @@ const loginUserCtrl = async (req: Request, res: Response) => {
       return;
     }
 
+    // Verificar si la cuenta está bloqueada (HU02)
+    const now = new Date();
+    if (user.lockedUntil && user.lockedUntil > now) {
+      const remainingTime = Math.ceil(
+        (user.lockedUntil.getTime() - now.getTime()) / 1000 / 60
+      );
+      res.status(403).json({
+        error: `Account is locked. Try again in ${remainingTime} minute(s)`,
+      });
+      return;
+    }
+
+    // Si el bloqueo ha expirado, resetear los intentos fallidos
+    if (user.lockedUntil && user.lockedUntil <= now) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+    }
+
     // Comparar contraseñas con bcrypt
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {
-      res.status(401).json({ error: "Invalid credentials" });
+      // Incrementar contador de intentos fallidos (HU02)
+      const newFailedAttempts = user.failedLoginAttempts + 1;
+      const updateData: any = {
+        failedLoginAttempts: newFailedAttempts,
+      };
+
+      // Si alcanza 3 intentos, bloquear por 5 minutos
+      if (newFailedAttempts >= 3) {
+        const lockUntil = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutos
+        updateData.lockedUntil = lockUntil;
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
+
+        // Respuesta de bloqueo después del 3er intento
+        res.status(403).json({
+          error: "Account locked. Too many failed attempts. Try again in 5 minutes",
+        });
+        return;
+      }
+
+      // Si no ha alcanzado 3 intentos, mostrar intentos restantes
+      await prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+
+      const attemptsRemaining = 3 - newFailedAttempts;
+      res.status(401).json({
+        error: `Invalid credentials. ${attemptsRemaining} attempt${attemptsRemaining > 1 ? "s" : ""} remaining before account lockout`,
+      });
       return;
     }
+
+    // Login exitoso: resetear contador de intentos fallidos (HU02)
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
 
     // Generar token JWT
     const token = generateToken(user.id, user.role);
