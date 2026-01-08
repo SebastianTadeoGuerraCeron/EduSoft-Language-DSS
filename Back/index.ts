@@ -1,12 +1,12 @@
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { type Request, type Response } from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
+import { startSubscriptionCheckJob } from "./src/jobs/subscriptionCheck";
+import routerAudit from "./src/routes/audit";
+import { routerBilling } from "./src/routes/billing";
 import { routerExam } from "./src/routes/exam";
 import { routerLesson } from "./src/routes/lesson";
 import { routerUser } from "./src/routes/user";
-import { routerBilling } from "./src/routes/billing";
-import routerAudit from "./src/routes/audit";
-import { startSubscriptionCheckJob } from "./src/jobs/subscriptionCheck";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -16,6 +16,35 @@ const port = process.env.PORT || 3000;
 
 // Confiar en proxies para obtener IP real (X-Forwarded-For)
 app.set("trust proxy", true);
+
+// ============================================================================
+// HU07 - Headers de seguridad globales
+// Aplica headers de seguridad básicos a todas las respuestas
+// ============================================================================
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  // HSTS - Forzar HTTPS por 1 año
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload"
+  );
+  
+  // Prevenir sniffing de tipo de contenido
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  
+  // Prevenir clickjacking
+  res.setHeader("X-Frame-Options", "DENY");
+  
+  // XSS Protection
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  
+  // Prevenir referrer leakage
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  
+  // Remover header que expone información del servidor
+  res.removeHeader("X-Powered-By");
+  
+  next();
+});
 
 // Configurar CORS
 const corsOrigins = process.env.CORS_ORIGINS?.split(",") || [
@@ -38,7 +67,27 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Reauth-Password"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Reauth-Password",
+      // HU07: Headers de seguridad de transacciones
+      "X-Transaction-Timestamp",
+      "X-Transaction-Nonce",
+      "X-Transaction-Signature",
+      "X-Request-Id",
+    ],
+    // HU07: Exponer headers de seguridad al frontend
+    exposedHeaders: [
+      "X-Transaction-Id",
+      "X-Transaction-Timestamp",
+      "X-Transaction-Nonce",
+      "X-Transaction-Signature",
+      "X-Signature-Algorithm",
+      "RateLimit-Limit",
+      "RateLimit-Remaining",
+      "RateLimit-Reset",
+    ],
   })
 );
 
@@ -74,4 +123,5 @@ app.listen(port, () => {
   console.log(`CORS enabled for: ${corsOrigins.join(", ")}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`Billing system active`);
+  console.log(`HU07: Payment transit security enabled`);
 });
