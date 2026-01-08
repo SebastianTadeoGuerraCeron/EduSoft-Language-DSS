@@ -88,20 +88,19 @@ export default function StudentLessons() {
                   <h3>{lesson.title}</h3>
                   <div className="lesson-badges">
                     <span
-                      className={`badge ${
-                        lesson.isPremium ? "premium" : "free"
-                      }`}
+                      className={`badge ${lesson.isPremium ? "premium" : "free"
+                        }`}
                     >
                       {lesson.isPremium ? "PRO" : "FREE"}
                     </span>
-                    {isLocked && <span className="locked-badge">🔒</span>}
+                    {isLocked && <span className="locked-badge"></span>}
                   </div>
                 </div>
 
                 {isLocked && (
                   <div className="locked-overlay">
                     <div className="locked-message">
-                      <span className="lock-icon">🔒</span>
+                      <span className="lock-icon"></span>
                       <p>Premium Content</p>
                       <span className="upgrade-hint">
                         Upgrade to PRO to access this lesson
@@ -162,7 +161,7 @@ export default function StudentLessons() {
                     className="btn-locked"
                     onClick={() => navigate("/billing/pricing")}
                   >
-                    🔒 Upgrade to Access
+                    Upgrade to Access
                   </button>
                 ) : (
                   <button
@@ -172,8 +171,8 @@ export default function StudentLessons() {
                     {progress?.percentage === 100
                       ? "Review Lesson"
                       : progress?.percentage > 0
-                      ? "Continue Learning"
-                      : "Start Lesson"}
+                        ? "Continue Learning"
+                        : "Start Lesson"}
                   </button>
                 )}
               </div>

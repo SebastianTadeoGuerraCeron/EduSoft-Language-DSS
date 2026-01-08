@@ -6,14 +6,14 @@ import '../styles/Billing.css';
  * Banner promocional para usuarios FREE
  * Se muestra en el dashboard y otras páginas para incentivar el upgrade
  */
-const PremiumBanner = ({ 
+const PremiumBanner = ({
     variant = 'full', // 'full', 'compact', 'minimal'
-    onDismiss 
+    onDismiss
 }) => {
     if (variant === 'minimal') {
         return (
-            <Link 
-                to="/pricing" 
+            <Link
+                to="/pricing"
                 style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -29,7 +29,7 @@ const PremiumBanner = ({
                 }}
                 className="hover-scale"
             >
-                <span>👑</span>
+                <span></span>
                 <span>Upgrade to Pro</span>
             </Link>
         );
@@ -49,10 +49,10 @@ const PremiumBanner = ({
                 flexWrap: 'wrap'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1.25rem' }}>👑</span>
+                    <span style={{ fontSize: '1.25rem' }}></span>
                     <span>Unlock all premium content!</span>
                 </div>
-                <Link 
+                <Link
                     to="/pricing"
                     style={{
                         background: 'white',
@@ -82,7 +82,7 @@ const PremiumBanner = ({
                     Upgrade to Pro
                 </Link>
                 {onDismiss && (
-                    <button 
+                    <button
                         onClick={onDismiss}
                         style={{
                             background: 'rgba(255,255,255,0.2)',
@@ -128,7 +128,7 @@ export const ExpiringBanner = ({ daysLeft, onRenew }) => {
                     Renew now to keep access to premium content.
                 </p>
             </div>
-            <button 
+            <button
                 onClick={onRenew}
                 style={{
                     background: '#92400e',

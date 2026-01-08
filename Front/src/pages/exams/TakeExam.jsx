@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ConfirmationModal } from "../../components/ConfirmationModal";
+import { ContentProtection } from "../../components/ContentProtection";
 import { useAuth } from "../../context/AuthContext";
 import {
   getExamById,
@@ -58,6 +59,7 @@ export default function TakeExam() {
       // Si ya hay un intento activo, resumir
       if (data.activeAttempt) {
         setAttempt(data.activeAttempt);
+        attemptRef.current = data.activeAttempt; // Actualizar ref inmediatamente
         setShowInstructions(false);
         const elapsed = Math.floor(
           (Date.now() - new Date(data.activeAttempt.startedAt).getTime()) / 1000
@@ -68,8 +70,9 @@ export default function TakeExam() {
           setStartTime(new Date(data.activeAttempt.startedAt));
           startTimer(remaining);
         } else {
-          // Time expired, submit automatically
-          handleSubmit(true);
+          // Time expired, submit automatically usando el attempt de data
+          setStartTime(new Date(data.activeAttempt.startedAt));
+          executeSubmitWithAttempt(data.activeAttempt);
         }
       }
     } catch (err) {
@@ -167,6 +170,16 @@ export default function TakeExam() {
   };
 
   const executeSubmit = async () => {
+    const currentAttempt = attemptRef.current || attempt;
+    if (!currentAttempt) {
+      setError("No active exam attempt found");
+      return;
+    }
+    await executeSubmitWithAttempt(currentAttempt);
+  };
+
+  // Función auxiliar para enviar con un attempt específico
+  const executeSubmitWithAttempt = async (attemptToSubmit) => {
     try {
       setSubmitting(true);
       setShowSubmitModal(false);
@@ -178,9 +191,9 @@ export default function TakeExam() {
         ? Math.floor((Date.now() - startTime.getTime()) / 1000)
         : 0;
 
-      const data = await submitExam(id, attempt.id, answers, timeTaken);
+      const data = await submitExam(id, attemptToSubmit.id, answers, timeTaken);
 
-      navigate(`/exams/${id}/results/${attempt.id}`, {
+      navigate(`/exams/${id}/results/${attemptToSubmit.id}`, {
         state: { results: data.results },
       });
     } catch (err) {
@@ -283,7 +296,7 @@ export default function TakeExam() {
             onClick={handleStart}
             disabled={loading}
           >
-            {loading ? "Starting..." : "🚀 Start Exam"}
+            {loading ? "Starting..." : " Start Exam"}
           </button>
         </div>
       </div>
@@ -295,26 +308,32 @@ export default function TakeExam() {
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="take-exam-container">
-      {/* Timer floating */}
-      <div className={`exam-timer ${getTimerClass()}`}>
-        <span className="timer-icon">⏱️</span>
-        <span className="timer-value">{formatTime(timeLeft)}</span>
-      </div>
+    <ContentProtection
+      enabled={!showInstructions}
+      contentType="exam"
+      userName={user?.username || ''}
+      userEmail={user?.email || ''}
+    >
+      <div className="take-exam-container">
+        {/* Timer floating */}
+        <div className={`exam-timer ${getTimerClass()}`}>
+          <span className="timer-icon"></span>
+          <span className="timer-value">{formatTime(timeLeft)}</span>
+        </div>
 
-      {/* Header */}
-      <div className="exam-header">
-        <h1>{exam.title}</h1>
-        <div className="exam-progress">
-          <div className="exam-progress-bar">
-            <div
-              className="exam-progress-fill"
-              style={{ width: `${(answeredCount / questions.length) * 100}%` }}
-            />
-          </div>
-          <span className="exam-progress-text">
-            {answeredCount}/{questions.length} answered
-          </span>
+        {/* Header */}
+        <div className="exam-header">
+          <h1>{exam.title}</h1>
+          <div className="exam-progress">
+            <div className="exam-progress-bar">
+              <div
+                className="exam-progress-fill"
+                style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+              />
+            </div>
+            <span className="exam-progress-text">
+              {answeredCount}/{questions.length} answered
+            </span>
         </div>
       </div>
 
@@ -440,6 +459,7 @@ export default function TakeExam() {
         onConfirm={executeSubmit}
         onCancel={() => setShowSubmitModal(false)}
       />
-    </div>
+      </div>
+    </ContentProtection>
   );
 }

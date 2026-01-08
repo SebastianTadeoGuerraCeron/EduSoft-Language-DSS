@@ -26,8 +26,51 @@ import {
 } from "../utils/encryption";
 import * as stripeService from "../services/stripe";
 import { getBillingPrisma } from "../services/billingDb";
+import { getAuditPrisma } from "../services/auditDb";
+import {
+  logUserActivity,
+  logSecurityEvent,
+  logPremiumAccess,
+  ActivityAction,
+  SecurityEvent,
+  SecuritySeverity,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
+
+/**
+ * Helper para obtener la IP real del cliente
+ * Maneja proxies, IPv6 loopback, y múltiples formatos
+ */
+function getClientIP(req: AuthRequest): string {
+  // Orden de prioridad para obtener la IP
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const realIP = req.headers["x-real-ip"];
+  
+  let ip: string | undefined;
+  
+  // X-Forwarded-For puede tener múltiples IPs separadas por coma
+  if (forwardedFor) {
+    const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+    ip = ips.split(",")[0].trim();
+  } else if (realIP) {
+    ip = Array.isArray(realIP) ? realIP[0] : realIP;
+  } else {
+    ip = req.ip || req.socket?.remoteAddress;
+  }
+  
+  // Convertir IPv6 loopback a IPv4
+  if (ip === "::1" || ip === "::ffff:127.0.0.1") {
+    ip = "127.0.0.1";
+  }
+  
+  // Remover prefijo IPv6
+  if (ip?.startsWith("::ffff:")) {
+    ip = ip.substring(7);
+  }
+  
+  return ip || "unknown";
+}
 
 /**
  * Crear suscripción con datos de tarjeta propios
@@ -151,11 +194,11 @@ export const createCheckoutCtrl = async (req: AuthRequest, res: Response) => {
       });
 
       // Log de acceso
-      await billingPrisma.billingAccessLog.create({
+      await getAuditPrisma().billingAccessLog.create({
         data: {
           userId,
           action: "PAYMENT",
-          ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+          ipAddress: getClientIP(req),
           userAgent: req.headers["user-agent"],
           success: true,
         },
@@ -442,6 +485,20 @@ export const cancelSubscriptionCtrl = async (req: AuthRequest, res: Response) =>
     }
 
     console.log('[cancelSubscriptionCtrl] Cancellation process completed successfully');
+
+    // Log de cancelación de suscripción
+    await logUserActivity(req, {
+      userId,
+      action: ActivityAction.CANCEL_SUBSCRIPTION,
+      resourceType: "SUBSCRIPTION",
+      resource: subscription.id,
+      success: true,
+      details: { 
+        plan: subscription.plan,
+        immediate,
+        cancelAt: canceledSub.cancel_at ? new Date(canceledSub.cancel_at * 1000) : null
+      },
+    });
 
     res.json({
       message: immediate
@@ -887,11 +944,11 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
     });
 
     // Log de acceso
-    await billingPrisma.billingAccessLog.create({
+    await getAuditPrisma().billingAccessLog.create({
       data: {
         userId,
         action: "PAYMENT",
-        ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+        ipAddress: getClientIP(req),
         userAgent: req.headers["user-agent"],
         success: true,
       },
@@ -1083,11 +1140,11 @@ export const addPaymentMethodCtrl = async (req: AuthRequest, res: Response) => {
     });
 
     // Log de acceso
-    await billingPrisma.billingAccessLog.create({
+    await getAuditPrisma().billingAccessLog.create({
       data: {
         userId,
         action: "CREATE",
-        ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+        ipAddress: getClientIP(req),
         userAgent: req.headers["user-agent"],
         success: true,
         details: `Added new card ending in ${lastFour}`,
@@ -1160,11 +1217,11 @@ export const setDefaultPaymentMethodCtrl = async (req: AuthRequest, res: Respons
     });
 
     // Log de acceso
-    await billingPrisma.billingAccessLog.create({
+    await getAuditPrisma().billingAccessLog.create({
       data: {
         userId,
         action: "UPDATE",
-        ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+        ipAddress: getClientIP(req),
         userAgent: req.headers["user-agent"],
         success: true,
         details: `Set card ${card.lastFourDigits} as default`,
@@ -1234,11 +1291,11 @@ export const deletePaymentMethodCtrl = async (req: AuthRequest, res: Response) =
     }
 
     // Log de acceso
-    await billingPrisma.billingAccessLog.create({
+    await getAuditPrisma().billingAccessLog.create({
       data: {
         userId,
         action: "DELETE",
-        ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+        ipAddress: getClientIP(req),
         userAgent: req.headers["user-agent"],
         success: true,
         details: `Removed card ending in ${card.lastFourDigits}`,
@@ -1374,11 +1431,11 @@ async function saveCardData(
   }
 
   // Log de acceso para auditoría
-  await billingPrisma.billingAccessLog.create({
+  await getAuditPrisma().billingAccessLog.create({
     data: {
       userId,
       action: existingCard ? "UPDATE" : "CREATE",
-      ipAddress: req.ip || req.headers["x-forwarded-for"] as string,
+      ipAddress: getClientIP(req),
       userAgent: req.headers["user-agent"],
       success: true,
       details: `Card ending in ${lastFour}`,
