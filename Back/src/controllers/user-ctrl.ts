@@ -15,11 +15,13 @@ import {
     logRegistrationSuccess,
     logWeakPasswordAttempt,
 } from "../utils/securityLogger";
+import {
   logUserActivity,
   logSecurityEvent,
   ActivityAction,
   SecurityEvent,
   SecuritySeverity,
+  ResourceType,
 } from "./audit-ctrl";
 
 const prisma = new PrismaClient();
@@ -647,15 +649,6 @@ const deleteUserAccountCtrl = async (req: AuthRequest, res: Response) => {
 };
 
 export {
-    addGameHistory,
-    createUserCtrl,
-    getMeCtrl,
-    getUserProgress,
-    getUserRanking,
-    loginUserCtrl,
-    recoverPasswordCtrl,
-    sendEmailCtrl,
-    updateProfileCtrl
   addGameHistory,
   createUserCtrl,
   deleteUserAccountCtrl,
