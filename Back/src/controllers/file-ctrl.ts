@@ -10,6 +10,12 @@ import {
 } from "../utils/github-storage";
 import multer from "multer";
 import path from "path";
+import {
+  logUserActivity,
+  logAdminAction,
+  ActivityAction,
+  ResourceType,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -222,6 +228,20 @@ export const downloadLessonFileCtrl = async (
       fileName,
       "files"
     );
+
+    // Log de descarga de archivo
+    await logUserActivity(req, {
+      userId,
+      action: ActivityAction.DOWNLOAD_LESSON_FILE,
+      resource: lessonId,
+      resourceType: ResourceType.LESSON,
+      success: true,
+      details: { 
+        fileName,
+        lessonTitle: lesson.title,
+        isPremium: lesson.isPremium,
+      },
+    });
 
     // Configurar headers para descarga
     const mimeType = getMimeType(fileName);

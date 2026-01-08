@@ -1,6 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/auth";
+import {
+  logAdminAction,
+  logSecurityEvent,
+  SecurityEvent,
+  SecuritySeverity,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -76,6 +82,28 @@ export const updateUserRoleCtrl = async (req: AuthRequest, res: Response) => {
         username: true,
         role: true,
         updatedAt: true,
+      },
+    });
+
+    // Log de cambio de rol (evento de seguridad importante)
+    await logAdminAction(req, {
+      adminId: req.userId!,
+      action: "CHANGE_USER_ROLE",
+      targetUserId: id,
+      oldValue: { role: user.role },
+      newValue: { role },
+      success: true,
+      details: { targetEmail: user.email, targetUsername: user.username },
+    });
+
+    await logSecurityEvent(req, {
+      userId: id,
+      event: SecurityEvent.ROLE_CHANGE,
+      severity: SecuritySeverity.HIGH,
+      details: { 
+        oldRole: user.role, 
+        newRole: role,
+        changedBy: req.userId,
       },
     });
 

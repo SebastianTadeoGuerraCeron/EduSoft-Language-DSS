@@ -5,7 +5,7 @@ import '../styles/Billing.css';
  * Badge de contenido Premium
  * Muestra un indicador visual para contenido que requiere suscripción
  */
-const PremiumBadge = ({ 
+const PremiumBadge = ({
     size = 'normal', // 'small', 'normal', 'large'
     showText = true,
     style = {}
@@ -17,7 +17,7 @@ const PremiumBadge = ({
     };
 
     return (
-        <span 
+        <span
             className="premium-badge"
             style={{ ...sizeStyles[size], ...style }}
         >
@@ -70,7 +70,7 @@ export const RoleBadge = ({ role, size = 'normal' }) => {
  */
 export const PremiumLock = ({ size = 20 }) => {
     return (
-        <span style={{ 
+        <span style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -81,7 +81,7 @@ export const PremiumLock = ({ size = 20 }) => {
             borderRadius: '4px',
             fontSize: size * 0.6
         }}>
-            🔒
+
         </span>
     );
 };
@@ -93,12 +93,12 @@ export const PremiumOverlay = ({ onUpgrade }) => {
     return (
         <div className="premium-lock-overlay">
             <div className="premium-lock-content">
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
                 <h3 style={{ margin: '0 0 0.5rem 0' }}>Premium Content</h3>
                 <p style={{ margin: '0 0 1rem 0', opacity: 0.9 }}>
                     Upgrade to Pro to access this content
                 </p>
-                <button 
+                <button
                     onClick={onUpgrade}
                     style={{
                         background: 'white',

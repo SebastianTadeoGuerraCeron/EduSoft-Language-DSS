@@ -1,6 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/auth";
+import {
+  logUserActivity,
+  logPremiumAccess,
+  logAdminAction,
+  ActivityAction,
+  ResourceType,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -542,6 +549,26 @@ export const startExamCtrl = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    // Log de inicio de examen
+    await logUserActivity(req, {
+      userId,
+      action: ActivityAction.START_EXAM,
+      resource: id,
+      resourceType: ResourceType.EXAM,
+      success: true,
+      details: { attemptId: attempt.id, isPremium: exam.isPremium },
+    });
+
+    // Si es premium, también registrar en logs de acceso premium
+    if (exam.isPremium) {
+      await logPremiumAccess(req, {
+        userId,
+        contentType: "EXAM",
+        contentId: id,
+        accessType: "VIEW",
+      });
+    }
+
     res.status(201).json({ attempt });
   } catch (error) {
     console.error("Error starting exam:", error);
@@ -571,6 +598,7 @@ export const submitExamCtrl = async (req: AuthRequest, res: Response) => {
           include: {
             questions: true,
           },
+          select: undefined,
         },
       },
     });
@@ -641,6 +669,34 @@ export const submitExamCtrl = async (req: AuthRequest, res: Response) => {
     });
 
     const passed = score >= attempt.exam.passingPercentage;
+
+    // Log de envío de examen
+    await logUserActivity(req, {
+      userId,
+      action: ActivityAction.SUBMIT_EXAM,
+      resource: attempt.examId,
+      resourceType: ResourceType.EXAM,
+      success: true,
+      duration: timeTaken || undefined,
+      details: { 
+        attemptId, 
+        score: Math.round(score * 100) / 100, 
+        passed,
+        earnedPoints,
+        totalPoints 
+      },
+    });
+
+    // Si es premium, registrar acceso completado
+    if (attempt.exam.isPremium) {
+      await logPremiumAccess(req, {
+        userId,
+        contentType: "EXAM",
+        contentId: attempt.examId,
+        contentTitle: attempt.exam.title,
+        accessType: "COMPLETE",
+      });
+    }
 
     res.json({
       attempt: updatedAttempt,

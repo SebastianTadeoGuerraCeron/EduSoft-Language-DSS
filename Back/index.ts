@@ -5,6 +5,7 @@ import { routerExam } from "./src/routes/exam";
 import { routerLesson } from "./src/routes/lesson";
 import { routerUser } from "./src/routes/user";
 import { routerBilling } from "./src/routes/billing";
+import routerAudit from "./src/routes/audit";
 import { startSubscriptionCheckJob } from "./src/jobs/subscriptionCheck";
 
 // Cargar variables de entorno
@@ -12,6 +13,9 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Confiar en proxies para obtener IP real (X-Forwarded-For)
+app.set("trust proxy", true);
 
 // Configurar CORS
 const corsOrigins = process.env.CORS_ORIGINS?.split(",") || [
@@ -45,13 +49,14 @@ app.use("/billing/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 
 app.get("/", (_req: Request, res: Response) => {
-  res.send("EduSoft API - Secure Backend 🔒");
+  res.send("EduSoft API - Secure Backend");
 });
 
 app.use("/user", routerUser);
 app.use("/lessons", routerLesson);
 app.use("/exams", routerExam);
 app.use("/billing", routerBilling);
+app.use("/audit", routerAudit);
 
 app.use("/profile-pictures", express.static("public/profile-pictures"));
 
@@ -65,8 +70,8 @@ process.on("SIGTERM", () => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-  console.log(`🔒 CORS enabled for: ${corsOrigins.join(", ")}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`💳 Billing system active`);
+  console.log(`Server running on port ${port}`);
+  console.log(`CORS enabled for: ${corsOrigins.join(", ")}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Billing system active`);
 });

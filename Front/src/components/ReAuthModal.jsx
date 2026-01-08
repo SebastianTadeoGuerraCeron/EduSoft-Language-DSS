@@ -79,8 +79,8 @@ const ReAuthModal = ({
                     </div>
 
                     {error && (
-                        <div style={{ 
-                            color: '#dc2626', 
+                        <div style={{
+                            color: '#dc2626',
                             fontSize: '0.875rem',
                             marginTop: '0.5rem',
                             padding: '0.5rem',
@@ -92,16 +92,16 @@ const ReAuthModal = ({
                     )}
 
                     <div className="reauth-buttons">
-                        <button 
-                            type="button" 
-                            className="cancel-btn" 
+                        <button
+                            type="button"
+                            className="cancel-btn"
                             onClick={onCancel}
                             disabled={loading}
                         >
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="confirm-btn"
                             disabled={loading}
                             style={confirmDanger ? { background: '#dc2626' } : {}}
@@ -111,15 +111,15 @@ const ReAuthModal = ({
                     </div>
                 </form>
 
-                <div style={{ 
-                    marginTop: '1rem', 
-                    fontSize: '0.75rem', 
+                <div style={{
+                    marginTop: '1rem',
+                    fontSize: '0.75rem',
                     color: '#666',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem'
                 }}>
-                    <span>🔒</span>
+                    <span></span>
                     <span>This verification helps protect your account security</span>
                 </div>
             </div>

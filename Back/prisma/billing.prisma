@@ -51,17 +51,3 @@ model BillingInfo {
   // Asegurar que solo haya una tarjeta con los mismos últimos 4 dígitos por usuario
   @@unique([userId, lastFourDigits])
 }
-
-// ========== LOG DE ACCESO A DATOS DE BILLING ==========
-// Para auditoría de quién accedió a datos sensibles
-
-model BillingAccessLog {
-  id          String   @id @default(cuid())
-  userId      String   // Usuario que accedió
-  action      String   // CREATE, READ, UPDATE, DELETE
-  ipAddress   String?  // IP desde donde se accedió
-  userAgent   String?  // Browser/dispositivo
-  success     Boolean  @default(true)
-  details     String?  // Detalles adicionales
-  timestamp   DateTime @default(now())
-}

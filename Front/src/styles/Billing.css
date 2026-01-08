@@ -436,7 +436,7 @@
 }
 
 .premium-badge::before {
-    content: '👑';
+    content: '';
 }
 
 /* Premium Lock Overlay */
@@ -445,7 +445,7 @@
 }
 
 .premium-lock::after {
-    content: '🔒';
+    content: '';
     position: absolute;
     top: 8px;
     right: 8px;
@@ -621,6 +621,7 @@
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -844,7 +845,7 @@
 }
 
 .test-mode-banner code {
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
     font-family: monospace;
@@ -867,8 +868,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -886,6 +892,7 @@
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -983,7 +990,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive */
@@ -1039,4 +1048,3 @@
         flex-direction: column;
     }
 }
-

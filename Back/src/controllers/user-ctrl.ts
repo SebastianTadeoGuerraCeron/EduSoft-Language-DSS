@@ -9,6 +9,13 @@ import {
   isStrongPassword,
   sanitizeInput,
 } from "../utils/security";
+import {
+  logUserActivity,
+  logSecurityEvent,
+  ActivityAction,
+  SecurityEvent,
+  SecuritySeverity,
+} from "./audit-ctrl";
 
 const prisma = new PrismaClient();
 
@@ -58,6 +65,16 @@ const createUserCtrl = async (req: Request, res: Response) => {
         role: userRole,
         profilePicture: "default-profile-picture.jpg",
       },
+    });
+
+    // Log de registro exitoso
+    await logUserActivity(req, {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      action: ActivityAction.REGISTER,
+      success: true,
+      details: { role: userRole },
     });
 
     console.log("User created successfully");
@@ -147,12 +164,38 @@ const loginUserCtrl = async (req: Request, res: Response) => {
           data: updateData,
         });
 
+        // Log de cuenta bloqueada (evento crítico de seguridad)
+        await logSecurityEvent(req, {
+          userId: user.id,
+          username: user.username,
+          event: SecurityEvent.ACCOUNT_LOCKED,
+          severity: SecuritySeverity.HIGH,
+          details: { 
+            failedAttempts: newFailedAttempts,
+            lockDuration: "5 minutes",
+            email 
+          },
+        });
+
         // Respuesta de bloqueo después del 3er intento
         res.status(403).json({
           error: "Account locked. Too many failed attempts. Try again in 5 minutes",
         });
         return;
       }
+
+      // Log de intento fallido
+      await logSecurityEvent(req, {
+        userId: user.id,
+        username: user.username,
+        event: SecurityEvent.FAILED_LOGIN,
+        severity: newFailedAttempts >= 2 ? SecuritySeverity.MEDIUM : SecuritySeverity.LOW,
+        details: { 
+          failedAttempts: newFailedAttempts,
+          attemptsRemaining: 3 - newFailedAttempts,
+          email 
+        },
+      });
 
       // Si no ha alcanzado 3 intentos, mostrar intentos restantes
       await prisma.user.update({
@@ -178,6 +221,16 @@ const loginUserCtrl = async (req: Request, res: Response) => {
 
     // Generar token JWT
     const token = generateToken(user.id, user.role);
+
+    // Log de login exitoso
+    await logUserActivity(req, {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      action: ActivityAction.LOGIN,
+      success: true,
+      details: { role: user.role },
+    });
 
     res.status(200).json({
       message: "Login successful",
@@ -245,6 +298,16 @@ const recoverPasswordCtrl = async (req: Request, res: Response) => {
       where: { email },
       data: { password: hashedPassword },
     });
+
+    // Log de recuperación de contraseña exitosa
+    await logSecurityEvent(req, {
+      userId: user.id,
+      username: user.username,
+      event: SecurityEvent.PASSWORD_CHANGE,
+      severity: SecuritySeverity.MEDIUM,
+      details: { method: "secret_answer", email },
+    });
+
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("Error recovering password:", error);
@@ -286,6 +349,21 @@ const updateProfileCtrl = async (req: Request, res: Response) => {
       data,
     });
 
+    // Log de actualización de perfil
+    const changes = [];
+    if (username) changes.push("username");
+    if (profilePicture) changes.push("profilePicture");
+    if (newPassword) changes.push("password");
+    
+    await logUserActivity(req, {
+      userId: updated.id,
+      username: updated.username,
+      email: updated.email,
+      action: ActivityAction.UPDATE_PROFILE,
+      success: true,
+      details: { fieldsUpdated: changes },
+    });
+
     res.json({
       user: {
         id: updated.id,
@@ -306,6 +384,17 @@ const addGameHistory = async (req: Request, res: Response) => {
     const record = await prisma.gameHistory.create({
       data: { userId, game, score },
     });
+
+    // Log de juego completado
+    await logUserActivity(req, {
+      userId,
+      action: ActivityAction.COMPLETE_GAME,
+      resource: game,
+      resourceType: ResourceType.GAME,
+      success: true,
+      details: { game, score },
+    });
+
     res.json(record);
   } catch (err) {
     res.status(500).json({ error: "Error saving game history" });
@@ -504,6 +593,17 @@ const deleteUserAccountCtrl = async (req: AuthRequest, res: Response) => {
 
       // Log de eliminación (para auditoría)
       console.log(`Account deleted securely for user: ${userId}`);
+    });
+
+    // Log de seguridad para eliminación de cuenta
+    await logSecurityEvent(req, {
+      userId: userId,
+      event: "ACCOUNT_DELETED",
+      severity: SecuritySeverity.HIGH,
+      details: { 
+        deletedAt: new Date().toISOString(),
+        role: user.role 
+      },
     });
 
     // Respuesta exitosa
