@@ -1,15 +1,20 @@
 import { PrismaClient } from "@prisma/client";
 import type { Request, Response } from "express";
+import { validateStrongPassword } from "../middleware/passwordValidation";
 import { transporter } from "../nodemailer";
 import {
-  hashPassword,
-  comparePassword,
-  generateToken,
-  isValidEmail,
-  isStrongPassword,
-  sanitizeInput,
+    comparePassword,
+    generateToken,
+    hashPassword,
+    isStrongPassword,
+    isValidEmail,
+    sanitizeInput,
 } from "../utils/security";
 import {
+    logRegistrationFailed,
+    logRegistrationSuccess,
+    logWeakPasswordAttempt,
+} from "../utils/securityLogger";
   logUserActivity,
   logSecurityEvent,
   ActivityAction,
@@ -21,23 +26,35 @@ const prisma = new PrismaClient();
 
 const createUserCtrl = async (req: Request, res: Response) => {
   const { email, username, password, answerSecret, role } = req.body;
+  const ipAddress = req.ip || req.socket.remoteAddress || "unknown";
 
   if (!email || !username || !password || !answerSecret) {
+    await logRegistrationFailed(email || "unknown", ipAddress, "Missing fields");
     res.status(400).json({ error: "All fields are required" });
     return;
   }
 
   // Validar email
   if (!isValidEmail(email)) {
+    await logRegistrationFailed(email, ipAddress, "Invalid email format");
     res.status(400).json({ error: "Invalid email format" });
     return;
   }
 
-  // Validar fortaleza de contraseña
-  if (!isStrongPassword(password)) {
+  // HU03: Validar fortaleza de contraseña con criterios robustos
+  const passwordValidation = validateStrongPassword(password, username, email);
+  if (!passwordValidation.isValid) {
+    // Log del intento de contraseña débil
+    await logWeakPasswordAttempt(
+      username,
+      email,
+      ipAddress,
+      passwordValidation.errors
+    );
+
     res.status(400).json({
-      error:
-        "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers",
+      error: "Password does not meet security requirements",
+      details: passwordValidation.errors,
     });
     return;
   }
@@ -67,6 +84,13 @@ const createUserCtrl = async (req: Request, res: Response) => {
       },
     });
 
+    // HU03: Log de registro exitoso
+    await logRegistrationSuccess(
+      sanitizedUsername,
+      email,
+      ipAddress,
+      userRole
+    );
     // Log de registro exitoso
     await logUserActivity(req, {
       userId: user.id,
@@ -89,10 +113,14 @@ const createUserCtrl = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error creating user:", error);
+    
     if (error.code === "P2002") {
+      await logRegistrationFailed(email, ipAddress, "Email already exists");
       res.status(409).json({ error: "Email already exists" });
       return;
     }
+    
+    await logRegistrationFailed(email, ipAddress, "Internal server error");
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -619,6 +647,15 @@ const deleteUserAccountCtrl = async (req: AuthRequest, res: Response) => {
 };
 
 export {
+    addGameHistory,
+    createUserCtrl,
+    getMeCtrl,
+    getUserProgress,
+    getUserRanking,
+    loginUserCtrl,
+    recoverPasswordCtrl,
+    sendEmailCtrl,
+    updateProfileCtrl
   addGameHistory,
   createUserCtrl,
   deleteUserAccountCtrl,
@@ -630,3 +667,4 @@ export {
   sendEmailCtrl,
   updateProfileCtrl,
 };
+

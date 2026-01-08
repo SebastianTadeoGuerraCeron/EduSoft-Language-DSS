@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const SALT_ROUNDS = 10;
+// HU03: Aumentado de 10 a 12 rounds para mayor seguridad
+const SALT_ROUNDS = 12;
 
 /**
  * Hash de contraseña usando bcrypt
@@ -51,15 +52,58 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Validar fortaleza de contraseña
- * Debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número
+ * Validar fortaleza de contraseña (HU03 - FIA_SOS.1)
+ * Debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial
  * @param password - Contraseña a validar
+ * @param username - Nombre de usuario para validación cruzada
+ * @param email - Email para validación cruzada
  * @returns true si es fuerte, false si no
  */
-export const isStrongPassword = (password: string): boolean => {
-  // Al menos 8 caracteres, una mayúscula, una minúscula, un número
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-  return passwordRegex.test(password);
+export const isStrongPassword = (
+  password: string,
+  username?: string,
+  email?: string
+): boolean => {
+  // Regex completo: 8+ chars, mayúscula, minúscula, número, carácter especial
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+  
+  if (!passwordRegex.test(password)) {
+    return false;
+  }
+
+  // Validar que no contenga username
+  if (username && username.length >= 3) {
+    if (password.toLowerCase().includes(username.toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Validar que no contenga email
+  if (email) {
+    const emailPrefix = email.split("@")[0];
+    if (
+      emailPrefix.length >= 3 &&
+      password.toLowerCase().includes(emailPrefix.toLowerCase())
+    ) {
+      return false;
+    }
+  }
+
+  // Validar que no tenga secuencias numéricas
+  const sequences = [
+    "012", "123", "234", "345", "456", "567", "678", "789",
+    "987", "876", "765", "654", "543", "432", "321",
+    "0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999"
+  ];
+  
+  for (const seq of sequences) {
+    if (password.includes(seq)) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
