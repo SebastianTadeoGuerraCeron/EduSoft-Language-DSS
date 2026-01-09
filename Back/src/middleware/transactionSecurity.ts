@@ -21,10 +21,9 @@ import crypto from "crypto";
 import type { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import {
-    logInsecureChannelAccess,
-    logIntegrityCheckFailed,
-    logProtocolDowngrade,
-    logReplayAttack,
+  logInsecureChannelAccess,
+  logProtocolDowngrade,
+  logReplayAttack
 } from "../utils/securityLogger";
 import type { AuthRequest } from "./auth";
 
@@ -222,8 +221,13 @@ export const requireSecureChannel = (
   res: Response,
   next: NextFunction
 ): void => {
-  // En desarrollo, permitir HTTP
-  if (process.env.NODE_ENV === "development") {
+  // Permitir HTTP en desarrollo o localhost
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isLocalhost = req.hostname === "localhost" || 
+                      req.hostname === "127.0.0.1" ||
+                      req.hostname === "::1";
+  
+  if (isDevelopment || isLocalhost) {
     next();
     return;
   }
@@ -326,10 +330,17 @@ export const transactionSecurityHeaders = (
 /**
  * Middleware: Verificación de integridad de request
  * 
- * Verifica que el request no haya sido modificado en tránsito:
- * - Valida HMAC del body si está presente
- * - Verifica timestamp para prevenir replay attacks
- * - Valida nonce único
+ * HU07: Protección contra replay attacks y manipulación de requests
+ * 
+ * - Valida timestamp para prevenir replay attacks basados en tiempo
+ * - Valida nonce único para prevenir replay attacks
+ * - La firma HMAC es OPCIONAL (solo se verifica en respuestas del servidor)
+ * 
+ * JUSTIFICACIÓN: No requerimos firma en requests porque:
+ * 1. La clave HMAC no debe exponerse en el cliente (seguridad)
+ * 2. El timestamp + nonce proporcionan protección contra replay attacks
+ * 3. La autenticación JWT protege contra requests no autorizados
+ * 4. La integridad de RESPUESTAS se garantiza con firma HMAC del servidor
  */
 export const verifyRequestIntegrity = (
   req: AuthRequest,
@@ -342,65 +353,63 @@ export const verifyRequestIntegrity = (
     return;
   }
   
-  // Si el cliente envía headers de integridad, verificarlos
-  const clientSignature = req.headers["x-transaction-signature"] as string;
+  // Extraer headers de seguridad
   const clientTimestamp = req.headers["x-transaction-timestamp"] as string;
   const clientNonce = req.headers["x-transaction-nonce"] as string;
   
-  // Si hay headers de integridad, validarlos
-  if (clientSignature && clientTimestamp && clientNonce) {
-    const timestamp = parseInt(clientTimestamp, 10);
-    const now = Date.now();
-    
-    // Verificar timestamp (tolerancia de 30 segundos)
-    if (isNaN(timestamp) || Math.abs(now - timestamp) > TIMESTAMP_TOLERANCE_MS) {
-      res.status(400).json({
-        error: "Request timestamp expired or invalid",
-        code: "TIMESTAMP_INVALID",
-      });
-      return;
-    }
-    
-    // Verificar nonce único
-    if (usedNonces.has(clientNonce)) {
-      // Log de replay attack
-      logReplayAttack(
-        req.ip || "unknown",
-        clientNonce,
-        req.path
-      ).catch(console.error);
-      
-      res.status(400).json({
-        error: "Duplicate request detected",
-        code: "REPLAY_DETECTED",
-      });
-      return;
-    }
-    
-    // Reconstruir y verificar firma
-    const bodyString = JSON.stringify(req.body);
-    const signatureData = `${clientTimestamp}|${clientNonce}|${bodyString}`;
-    
-    if (!verifyHmac(signatureData, clientSignature)) {
-      // Log de fallo de integridad
-      logIntegrityCheckFailed(
-        req.ip || "unknown",
-        req.path,
-        req.userId,
-        "HMAC verification failed"
-      ).catch(console.error);
-      
-      res.status(400).json({
-        error: "Request integrity verification failed",
-        code: "INTEGRITY_FAILED",
-      });
-      return;
-    }
-    
-    // Registrar nonce como usado
-    usedNonces.set(clientNonce, now);
+  console.log(`[HU07] Verifying request integrity - Method: ${req.method}, Path: ${req.path}`);
+  console.log(`[HU07] Headers - Timestamp: ${clientTimestamp}, Nonce: ${clientNonce?.substring(0, 16)}...`);
+  
+  // Timestamp y nonce son obligatorios para prevenir replay attacks
+  if (!clientTimestamp || !clientNonce) {
+    console.log('[HU07] ❌ Missing security headers');
+    res.status(400).json({
+      error: "Missing security headers",
+      code: "MISSING_SECURITY_HEADERS",
+      message: "Request must include X-Transaction-Timestamp and X-Transaction-Nonce headers",
+    });
+    return;
   }
   
+  // Validar timestamp (prevenir replay attacks basados en tiempo)
+  const timestamp = parseInt(clientTimestamp, 10);
+  const now = Date.now();
+  
+  // Verificar timestamp (tolerancia de 5 minutos para compensar diferencias de reloj)
+  if (isNaN(timestamp) || Math.abs(now - timestamp) > 5 * 60 * 1000) {
+    console.log(`[HU07] ❌ Timestamp expired - Request: ${timestamp}, Now: ${now}, Diff: ${Math.abs(now - timestamp)}ms`);
+    res.status(400).json({
+      error: "Request timestamp expired or invalid",
+      code: "TIMESTAMP_INVALID",
+      message: "Request must be sent within 5 minutes",
+    });
+    return;
+  }
+  
+  // Validar nonce único (prevenir replay attacks)
+  if (usedNonces.has(clientNonce)) {
+    console.log(`[HU07] ❌ Duplicate nonce detected: ${clientNonce} - Total cached: ${usedNonces.size}`);
+    // Log de replay attack
+    logReplayAttack(
+      req.ip || "unknown",
+      clientNonce,
+      req.path
+    ).catch(console.error);
+    
+    res.status(400).json({
+      error: "Duplicate request detected",
+      code: "REPLAY_DETECTED",
+      message: "This request has already been processed",
+    });
+    return;
+  }
+  
+  // Registrar nonce como usado
+  usedNonces.set(clientNonce, Date.now());
+  console.log(`[HU07] ✅ Nonce registered: ${clientNonce.substring(0, 16)}... - Total cached: ${usedNonces.size}`);
+  
+  // Verificación exitosa (timestamp válido + nonce único)
+  console.log('[HU07] ✅ Request integrity verified');
   next();
 };
 
@@ -417,13 +426,13 @@ export const addResponseIntegrity = (
   const originalJson = res.json.bind(res);
   
   res.json = function(body: any) {
-    // Si ya tiene _security, no modificar
-    if (body && body._security) {
+    // Si ya tiene _integrity, no modificar
+    if (body && body._integrity) {
       return originalJson(body);
     }
     
-    // Si es un error, no agregar seguridad
-    if (body && body.error) {
+    // Si es un error, no agregar seguridad (excepto errores de integridad)
+    if (body && body.error && body.code !== "INTEGRITY_FAILED") {
       return originalJson(body);
     }
     
@@ -441,6 +450,8 @@ export const addResponseIntegrity = (
     res.setHeader("X-Transaction-Nonce", nonce);
     res.setHeader("X-Transaction-Signature", signature);
     res.setHeader("X-Signature-Algorithm", "HMAC-SHA256");
+    
+    console.log(`[HU07] Response integrity added - TxID: ${transactionId.substring(0, 16)}...`);
     
     return originalJson({
       ...body,

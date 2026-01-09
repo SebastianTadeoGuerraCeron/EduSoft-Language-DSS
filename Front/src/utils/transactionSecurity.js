@@ -119,15 +119,23 @@ export const verifyResponseIntegrity = (response) => {
 /**
  * Prepara headers de seguridad para requests de transacción
  * 
- * @param {Object} body - Body del request
+ * HU07: Protección contra replay attacks
+ * - Timestamp: Prevenir replay attacks basados en tiempo
+ * - Nonce: Prevenir replay attacks (cada request es único)
+ * - Request-Id: Trazabilidad
+ * 
+ * NOTA: No se genera firma HMAC en el cliente porque:
+ * 1. La clave HMAC no debe exponerse en el cliente (seguridad)
+ * 2. La integridad se verifica en las RESPUESTAS del servidor
+ * 3. El timestamp + nonce proporcionan protección contra replay attacks
+ * 
+ * @param {Object} body - Body del request (no usado, mantenido por compatibilidad)
  * @returns {Object} Headers de seguridad
  */
 export const prepareSecurityHeaders = (body) => {
     const timestamp = getTimestamp();
     const nonce = generateNonce();
 
-    // Nota: En producción, la firma se generaría con una clave derivada
-    // Aquí incluimos los metadatos para que el servidor pueda verificar
     return {
         'X-Transaction-Timestamp': timestamp.toString(),
         'X-Transaction-Nonce': nonce,
