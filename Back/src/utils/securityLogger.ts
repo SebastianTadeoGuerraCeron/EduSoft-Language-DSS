@@ -1,6 +1,7 @@
 /**
- * HU03 - Security Logger para auditoría de eventos de seguridad
- * Registra intentos de contraseñas débiles y actividades sospechosas
+ * HU03 & HU07 - Security Logger para auditoría de eventos de seguridad
+ * Registra intentos de contraseñas débiles, actividades sospechosas y
+ * eventos de seguridad de transacciones
  */
 
 export enum SecurityEventType {
@@ -12,6 +13,16 @@ export enum SecurityEventType {
   COMMON_PASSWORD_ATTEMPT = "common_password_attempt",
   USERNAME_IN_PASSWORD = "username_in_password",
   SEQUENTIAL_PASSWORD = "sequential_password",
+  // HU07 - Eventos de seguridad de transacciones
+  INSECURE_CHANNEL_ACCESS = "insecure_channel_access",
+  PROTOCOL_DOWNGRADE = "protocol_downgrade",
+  INTEGRITY_CHECK_FAILED = "integrity_check_failed",
+  REPLAY_ATTACK_DETECTED = "replay_attack_detected",
+  TIMESTAMP_EXPIRED = "timestamp_expired",
+  PAYMENT_TRANSACTION = "payment_transaction",
+  PAYMENT_TRANSACTION_FAILED = "payment_transaction_failed",
+  CARD_OPERATION = "card_operation",
+  WEBHOOK_SIGNATURE_INVALID = "webhook_signature_invalid",
 }
 
 interface SecurityLogEvent {
@@ -123,5 +134,134 @@ export const logRegistrationFailed = async (
     email,
     ipAddress,
     details: { reason },
+  });
+};
+
+// ============================================================================
+// HU07 - Funciones de logging para transacciones
+// ============================================================================
+
+/**
+ * Registra intento de acceso por canal inseguro
+ */
+export const logInsecureChannelAccess = async (
+  ipAddress: string,
+  path: string,
+  userAgent?: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.INSECURE_CHANNEL_ACCESS,
+    ipAddress,
+    userAgent,
+    details: { path },
+  });
+};
+
+/**
+ * Registra intento de downgrade de protocolo
+ */
+export const logProtocolDowngrade = async (
+  ipAddress: string,
+  protocol: string,
+  path: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.PROTOCOL_DOWNGRADE,
+    ipAddress,
+    details: { protocol, path },
+  });
+};
+
+/**
+ * Registra fallo de verificación de integridad
+ */
+export const logIntegrityCheckFailed = async (
+  ipAddress: string,
+  path: string,
+  userId?: string,
+  reason?: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.INTEGRITY_CHECK_FAILED,
+    ipAddress,
+    details: { path, userId, reason },
+  });
+};
+
+/**
+ * Registra detección de replay attack
+ */
+export const logReplayAttack = async (
+  ipAddress: string,
+  nonce: string,
+  path: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.REPLAY_ATTACK_DETECTED,
+    ipAddress,
+    details: { nonce, path },
+  });
+};
+
+/**
+ * Registra transacción de pago exitosa
+ */
+export const logPaymentTransaction = async (
+  userId: string,
+  ipAddress: string,
+  transactionId: string,
+  amount: number,
+  plan: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.PAYMENT_TRANSACTION,
+    ipAddress,
+    details: { userId, transactionId, amount, plan },
+  });
+};
+
+/**
+ * Registra transacción de pago fallida
+ */
+export const logPaymentTransactionFailed = async (
+  userId: string,
+  ipAddress: string,
+  reason: string,
+  plan: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.PAYMENT_TRANSACTION_FAILED,
+    ipAddress,
+    details: { userId, reason, plan },
+  });
+};
+
+/**
+ * Registra operación de tarjeta
+ */
+export const logCardOperation = async (
+  userId: string,
+  ipAddress: string,
+  operation: "add" | "delete" | "update" | "setDefault",
+  success: boolean
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.CARD_OPERATION,
+    ipAddress,
+    details: { userId, operation, success },
+  });
+};
+
+/**
+ * Registra firma de webhook inválida
+ */
+export const logWebhookSignatureInvalid = async (
+  ipAddress: string,
+  userAgent?: string
+): Promise<void> => {
+  await logSecurityEvent({
+    eventType: SecurityEventType.WEBHOOK_SIGNATURE_INVALID,
+    ipAddress,
+    userAgent,
   });
 };
