@@ -19,7 +19,7 @@
 
 import crypto from "crypto";
 import type { NextFunction, Request, Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { type RateLimitRequestHandler } from "express-rate-limit";
 import {
   logInsecureChannelAccess,
   logProtocolDowngrade,
@@ -501,11 +501,6 @@ export const billingRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false, // Contar todas las requests
-  keyGenerator: (req) => {
-    // Usar combinación de IP + userId si está disponible
-    const userId = (req as AuthRequest).userId || "anonymous";
-    return `billing:${req.ip}:${userId}`;
-  },
   handler: (_req, res) => {
     res.status(429).json({
       error: "Too many payment attempts. Please try again later.",
@@ -528,10 +523,6 @@ export const cardOperationsRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    const userId = (req as AuthRequest).userId || "anonymous";
-    return `card:${req.ip}:${userId}`;
-  },
 });
 
 /**
@@ -542,10 +533,6 @@ export const webhookRateLimiter = rateLimit({
   max: 100, // Stripe puede enviar muchos eventos
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Agrupar por IP de Stripe
-    return `webhook:${req.ip}`;
-  },
 });
 
 // ============================================================================
