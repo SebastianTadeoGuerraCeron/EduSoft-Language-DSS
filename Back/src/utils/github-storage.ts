@@ -1,8 +1,10 @@
-import { Octokit } from "@octokit/rest";
-
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
+// Helper para obtener Octokit con dynamic import (ESM package en CommonJS)
+const getOctokit = async () => {
+  const { Octokit } = await import("@octokit/rest");
+  return new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+  });
+};
 
 interface UploadOptions {
   lessonId: string;
@@ -35,6 +37,7 @@ export const uploadFileToGitHub = async (options: UploadOptions) => {
   try {
     const fullPath = `lessons/${lessonId}/${filePath}/${fileName}`;
     const sha = await getFileSha(fullPath);
+    const octokit = await getOctokit();
 
     const response = await octokit.rest.repos.createOrUpdateFileContents({
       owner: process.env.GITHUB_OWNER!,
@@ -90,6 +93,7 @@ export const downloadFileFromGitHub = async (
 ): Promise<Buffer> => {
   try {
     const fullPath = `lessons/${lessonId}/${filePath}/${fileName}`;
+    const octokit = await getOctokit();
 
     const response = await octokit.rest.repos.getContent({
       owner: process.env.GITHUB_OWNER!,
@@ -132,6 +136,7 @@ export const listFilesFromGitHub = async (
 ): Promise<FileMetadata[]> => {
   try {
     const dirPath = `lessons/${lessonId}/${filePath}`;
+    const octokit = await getOctokit();
 
     const response = await octokit.rest.repos.getContent({
       owner: process.env.GITHUB_OWNER!,
@@ -180,6 +185,7 @@ export const deleteFileFromGitHub = async (
 ): Promise<{ success: boolean; message: string }> => {
   try {
     const fullPath = `lessons/${lessonId}/${filePath}/${fileName}`;
+    const octokit = await getOctokit();
 
     // Primero obtener el SHA del archivo
     const response = await octokit.rest.repos.getContent({
@@ -224,8 +230,7 @@ export const deleteFileFromGitHub = async (
  * @returns SHA del archivo o undefined si no existe
  */
 const getFileSha = async (filePath: string): Promise<string | undefined> => {
-  try {
-    const response = await octokit.rest.repos.getContent({
+  try {    const octokit = await getOctokit();    const response = await octokit.rest.repos.getContent({
       owner: process.env.GITHUB_OWNER!,
       repo: process.env.GITHUB_REPO!,
       path: filePath,
@@ -283,8 +288,7 @@ const getFileType = (fileName: string): string => {
  * @returns true si la conexión es exitosa
  */
 export const testGitHubConnection = async (): Promise<boolean> => {
-  try {
-    await octokit.rest.repos.get({
+  try {    const octokit = await getOctokit();    await octokit.rest.repos.get({
       owner: process.env.GITHUB_OWNER!,
       repo: process.env.GITHUB_REPO!,
     });
