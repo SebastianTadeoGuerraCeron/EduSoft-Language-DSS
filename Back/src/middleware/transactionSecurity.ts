@@ -19,7 +19,7 @@
 
 import crypto from "crypto";
 import type { NextFunction, Request, Response } from "express";
-import rateLimit, { type RateLimitRequestHandler } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 import {
   logInsecureChannelAccess,
   logProtocolDowngrade,
