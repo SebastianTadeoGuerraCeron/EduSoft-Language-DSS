@@ -19,13 +19,14 @@ COPY tsconfig*.json ./
 COPY prisma ./prisma
 # copia los archivos de la app
 COPY . .
-# Construye la app 
+# Instala dependencias primero
 RUN npm ci --include=dev
-RUN npm run build
-# Genera los 3 clientes de Prisma
+# Genera los 3 clientes de Prisma ANTES del build
 RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npx prisma generate --schema=prisma/audit.prisma
 RUN npx prisma generate --schema=prisma/billing.prisma
+# Ahora construye la app (TypeScript ya puede encontrar los clientes de Prisma)
+RUN npm run build
 # Elimina las dependencias de desarrollo
 RUN npm prune --omit=dev
 
