@@ -325,9 +325,6 @@ export const createPaymentMethodFromCard = async (cardData: {
   
   // Si es una tarjeta de prueba conocida, usar el token
   if (testCardTokens[cleanCardNumber]) {
-    // Obtener el PaymentMethod de prueba
-    const testPaymentMethodId = testCardTokens[cleanCardNumber];
-    
     // Para tokens de prueba, creamos un PaymentMethod usando el token
     const paymentMethod = await stripe.paymentMethods.create({
       type: 'card',

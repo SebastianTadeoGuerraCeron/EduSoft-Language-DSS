@@ -92,9 +92,11 @@ export const validatePasswordStrength = (password, username = '') => {
 
 /**
  * Validar formato de email
+ * Regex optimizada para prevenir ReDoS (Regular expression Denial of Service)
  */
 export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Regex segura con longitud máxima implícita y sin cuantificadores anidados
+  const emailRegex = /^[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
 };
 

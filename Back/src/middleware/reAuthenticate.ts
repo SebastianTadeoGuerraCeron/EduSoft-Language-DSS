@@ -116,7 +116,7 @@ export const requireReAuthentication = async (
  */
 export const optionalReAuthentication = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {

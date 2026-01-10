@@ -5,11 +5,13 @@ import { API_URL } from '../../../API';
 import { HeaderGame } from '../../../components/HeaderGame';
 import { useAuth } from '../../../context/AuthContext';
 import { SENTENCES_STACK_FOR_GRAMMAR } from '../CONST_VALUES';
+import { getRandomElements, shuffleSentence } from '../../../utils/gameRandomization';
 
-// mezclar el orden de las oraciones y tomar 5 primeras
-const sentences = SENTENCES_STACK_FOR_GRAMMAR.sort(() => Math.random() - 0.5).slice(0, 5);
+// Mezclar el orden de las oraciones y tomar 5 primeras
+// Usando función helper documentada para aleatorización no-crítica en juegos
+const sentences = getRandomElements(SENTENCES_STACK_FOR_GRAMMAR, 5);
 
-const shuffled = sentences.map((s) => s.split(' ').sort(() => Math.random() - 0.5));
+const shuffled = sentences.map((s) => shuffleSentence(s));
 
 export const Grammar = () => {
 	const total = sentences.length;

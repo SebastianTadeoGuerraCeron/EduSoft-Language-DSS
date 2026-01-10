@@ -4,7 +4,6 @@ import type { AuthRequest } from "../middleware/auth";
 import {
   logUserActivity,
   logPremiumAccess,
-  logAdminAction,
   ActivityAction,
   ResourceType,
 } from "./audit-ctrl";

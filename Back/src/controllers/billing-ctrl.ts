@@ -16,24 +16,20 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/auth";
 import { PrismaClient } from "@prisma/client";
+import { normalizeIP } from "../utils/networkConstants";
 import {
   encryptCardData,
   decryptCardData,
   generateIntegrityHash,
   generateTransactionId,
   validateCardNumber,
-  detectCardBrand,
 } from "../utils/encryption";
 import * as stripeService from "../services/stripe";
 import { getBillingPrisma } from "../services/billingDb";
 import { getAuditPrisma } from "../services/auditDb";
 import {
   logUserActivity,
-  logSecurityEvent,
-  logPremiumAccess,
   ActivityAction,
-  SecurityEvent,
-  SecuritySeverity,
 } from "./audit-ctrl";
 
 const prisma = new PrismaClient();
@@ -59,17 +55,7 @@ function getClientIP(req: AuthRequest): string {
     ip = req.ip || req.socket?.remoteAddress;
   }
   
-  // Convertir IPv6 loopback a IPv4
-  if (ip === "::1" || ip === "::ffff:127.0.0.1") {
-    ip = "127.0.0.1";
-  }
-  
-  // Remover prefijo IPv6
-  if (ip?.startsWith("::ffff:")) {
-    ip = ip.substring(7);
-  }
-  
-  return ip || "unknown";
+  return normalizeIP(ip);
 }
 
 /**
@@ -180,7 +166,6 @@ export const createCheckoutCtrl = async (req: AuthRequest, res: Response) => {
       });
 
       // Crear registro de pago
-      const billingPrisma = getBillingPrisma();
       await prisma.payment.create({
         data: {
           userId,

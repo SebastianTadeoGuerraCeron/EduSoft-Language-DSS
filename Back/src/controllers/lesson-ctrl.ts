@@ -322,7 +322,7 @@ export const deleteLessonCtrl = async (req: AuthRequest, res: Response) => {
  * Obtener estudiantes candidatos para asignación (todos los estudiantes)
  * GET /lessons/candidates
  */
-export const getLessonCandidatesCtrl = async (req: AuthRequest, res: Response) => {
+export const getLessonCandidatesCtrl = async (_req: AuthRequest, res: Response) => {
   try {
     const candidates = await prisma.user.findMany({
       where: {

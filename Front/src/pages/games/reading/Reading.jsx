@@ -4,8 +4,10 @@ import { API_URL } from '../../../API';
 import { HeaderGame } from '../../../components/HeaderGame';
 import { useAuth } from '../../../context/AuthContext';
 import { SENTENCES_STACK_FOR_READING } from '../CONST_VALUES';
+import { getRandomElements, shuffleArray } from '../../../utils/gameRandomization';
 
-const passages = SENTENCES_STACK_FOR_READING.sort(() => Math.random() - 0.5).slice(0, 5); // Selecciona 5 lecturas aleatorias
+// Selecciona 5 lecturas aleatorias usando utility function documentada
+const passages = getRandomElements(SENTENCES_STACK_FOR_READING, 5);
 console.log(passages); // TODO: eliminar en producción
 
 export const Reading = () => {
@@ -20,9 +22,8 @@ export const Reading = () => {
 	const { user } = useAuth();
 
 	const current = passages[idx];
-	const choices = [...current.answers, ...current.distractors].sort(
-		() => Math.random() - 0.5
-	);
+	// Mezclar respuestas con utility function para aleatorización no-crítica
+	const choices = shuffleArray([...current.answers, ...current.distractors]);
 
 	// al cambiar de lectura, reinicia
 	useEffect(() => {

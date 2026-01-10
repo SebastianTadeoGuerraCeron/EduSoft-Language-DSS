@@ -12,7 +12,6 @@ import multer from "multer";
 import path from "path";
 import {
   logUserActivity,
-  logAdminAction,
   ActivityAction,
   ResourceType,
 } from "./audit-ctrl";
@@ -21,10 +20,19 @@ const prisma = new PrismaClient();
 
 // Configurar multer para archivos temporales
 const storage = multer.memoryStorage(); // Guardar en memoria antes de subir a GitHub
+
+// Límite de tamaño de archivo seguro: 5MB
+// Consideraciones de seguridad:
+// - Previene DoS por carga de archivos grandes
+// - Reduce uso de memoria del servidor
+// - Suficiente para PDFs de lecciones (documentos típicos: 500KB-2MB)
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB por archivo
+    fileSize: MAX_FILE_SIZE,
+    files: 10, // Máximo 10 archivos por request
   },
   fileFilter: (_req, file, cb) => {
     // Solo permitir PDFs para prevenir ataques

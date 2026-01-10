@@ -4,13 +4,15 @@ import { API_URL } from '../../../API';
 import { HeaderGame } from '../../../components/HeaderGame';
 import { useAuth } from '../../../context/AuthContext';
 import { SENTENCES_STACK_FOR_VOCABULARY } from '../CONST_VALUES';
+import { getRandomElements } from '../../../utils/gameRandomization';
 
 const TOTAL_QUESTIONS = 5;
 const POINTS_PER_QUESTION = 100 / TOTAL_QUESTIONS; // Cada pregunta vale 20 puntos
 
 // Función para barajar un arreglo y tomar los primeros N elementos.
+// Usando utility function documentada para aleatorización no-crítica en juegos
 const shuffleAndPick = (arr, num) => {
-	return [...arr].sort(() => 0.5 - Math.random()).slice(0, num);
+	return getRandomElements(arr, num);
 };
 
 // Componente para la pantalla de juego

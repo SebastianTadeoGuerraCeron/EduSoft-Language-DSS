@@ -14,6 +14,7 @@
 import type { Request, Response } from "express";
 import type { AuthRequest } from "../middleware/auth";
 import { getAuditPrisma } from "../services/auditDb";
+import { normalizeIP } from "../utils/networkConstants";
 
 // ============================================
 // TIPOS Y ENUMS
@@ -111,15 +112,7 @@ export function getClientIP(req: Request | AuthRequest): string {
     ip = req.ip || req.socket?.remoteAddress;
   }
   
-  if (ip === "::1" || ip === "::ffff:127.0.0.1") {
-    ip = "127.0.0.1";
-  }
-  
-  if (ip?.startsWith("::ffff:")) {
-    ip = ip.substring(7);
-  }
-  
-  return ip || "unknown";
+  return normalizeIP(ip);
 }
 
 // ============================================

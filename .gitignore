@@ -67,3 +67,6 @@ Back/prisma/migrations
 */src/generated/prisma
 test-hu03-security.js
 test-hu07-security.js
+
+.scannerwork
+.sonarlint

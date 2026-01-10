@@ -1,4 +1,3 @@
-import type { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 
 /**
@@ -19,7 +18,7 @@ export const registrationLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  handler: (_req: Request, res: Response) => {
+  handler: (_req, res) => {
     res.status(429).json({
       error:
         "Too many registration attempts from this IP, please try again after 15 minutes",
@@ -42,7 +41,7 @@ export const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // No contar intentos exitosos
-  handler: (_req: Request, res: Response) => {
+  handler: (_req, res) => {
     res.status(429).json({
       error:
         "Too many login attempts from this IP, please try again after 15 minutes",
@@ -64,7 +63,7 @@ export const passwordRecoveryLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (_req: Request, res: Response) => {
+  handler: (_req, res) => {
     res.status(429).json({
       error:
         "Too many password recovery attempts from this IP, please try again after 1 hour",

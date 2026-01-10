@@ -26,7 +26,7 @@ const prisma = new PrismaClient();
  */
 export const checkPremiumAccess = (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const userRole = req.userRole;
@@ -197,7 +197,7 @@ export const checkExamPremiumAccess = async (
  */
 export const markPremiumContent = (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const userRole = req.userRole;

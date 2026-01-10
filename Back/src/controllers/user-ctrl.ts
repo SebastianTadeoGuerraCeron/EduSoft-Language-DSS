@@ -613,8 +613,10 @@ const deleteUserAccountCtrl = async (req: AuthRequest, res: Response) => {
       // Esto se maneja automáticamente por las relaciones en Prisma con onDelete: Cascade
 
       // 2. Sobreescribir datos sensibles antes de eliminar
-      const randomEmail = `deleted_${Date.now()}_${Math.random().toString(36).substr(2, 9)}@deleted.local`;
-      const randomUsername = `deleted_${Date.now()}`;
+      // Usar crypto.randomBytes() para generación criptográficamente segura
+      // (Variables preparadas para futuro uso si se necesita anonimización en lugar de eliminación)
+      // const _randomEmail = `deleted_${Date.now()}_${crypto.randomBytes(6).toString('hex')}@deleted.local`;
+      // const _randomUsername = `deleted_${Date.now()}`;
 
       // 3. Eliminar el usuario
       await tx.user.delete({

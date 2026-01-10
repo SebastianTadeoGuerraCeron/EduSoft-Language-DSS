@@ -4,12 +4,14 @@ import { API_URL } from '../../../API';
 import { useAuth } from '../../../context/AuthContext';
 import { SENTENCES_STACK_FOR_SPEAKING } from '../CONST_VALUES';
 import { HeaderGame } from '../../../components/HeaderGame';
+import { getRandomElements } from '../../../utils/gameRandomization';
 
 // Solo 5 rondas como solicitaste
 const TOTAL_PRONUNCIATION_ROUNDS = 5;
 
+// Usando utility function documentada para aleatorización no-crítica en juegos
 const shuffleAndPick = (arr, num) => {
-	return [...arr].sort(() => 0.5 - Math.random()).slice(0, num);
+	return getRandomElements(arr, num);
 };
 
 // --- Enhanced Scoring System ---

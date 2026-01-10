@@ -1,9 +1,7 @@
 import express from "express";
 import multer from "multer";
+import crypto from "crypto";
 import {
-  getAllUsersCtrl,
-  getSystemStatsCtrl,
-  updateUserRoleCtrl,
   createUserCtrl,
   deleteUserAccountCtrl,
   loginUserCtrl,
@@ -20,17 +18,6 @@ import {
   updateUserRoleCtrl,
   getSystemStatsCtrl,
 } from "../controllers/admin-ctrl";
-import {
-    addGameHistory,
-    createUserCtrl,
-    getMeCtrl,
-    getUserProgress,
-    getUserRanking,
-    loginUserCtrl,
-    recoverPasswordCtrl,
-    sendEmailCtrl,
-    updateProfileCtrl,
-} from "../controllers/user-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
 import {
@@ -41,22 +28,45 @@ import {
 
 const routerUser = express.Router();
 
+// Límites de seguridad para imágenes de perfil
+const MAX_PROFILE_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB (suficiente para imágenes de perfil de alta calidad)
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, "public/profile-pictures");
   },
   filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    // Usar crypto.randomBytes() para generación criptográficamente segura de nombres únicos
+    const uniqueSuffix = Date.now() + "-" + crypto.randomBytes(6).toString('hex');
     const ext = file.originalname.split(".").pop();
     cb(null, `${uniqueSuffix}.${ext}`);
   },
 });
-const upload = multer({ storage });
+
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: MAX_PROFILE_IMAGE_SIZE,
+    files: 1, // Solo 1 imagen de perfil a la vez
+  },
+  fileFilter: (_req, file, cb) => {
+    // Validar tipo MIME de imagen
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(', ')}`));
+    }
+  },
+});
 
 // ===== Rutas públicas (sin autenticación) =====
 // HU03: Rate limiters para prevenir ataques de fuerza bruta
+// @ts-ignore - Conflicto de tipos entre express v5 y express-rate-limit
 routerUser.post("/create", registrationLimiter, createUserCtrl as express.RequestHandler);
+// @ts-ignore - Conflicto de tipos entre express v5 y express-rate-limit
 routerUser.post("/login", loginLimiter, loginUserCtrl as express.RequestHandler);
+// @ts-ignore - Conflicto de tipos entre express v5 y express-rate-limit
 routerUser.post(
   "/recover-password",
   passwordRecoveryLimiter,
