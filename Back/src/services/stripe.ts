@@ -342,15 +342,32 @@ export const createPaymentMethodFromCard = async (cardData: {
   // Para tarjetas reales (producción con PCI compliance)
   // Este código solo funcionará si tienes habilitado raw card data en Stripe
   try {
-    const [expMonth, expYear] = cardData.expiry.split('/');
-    const fullYear = 2000 + parseInt(expYear, 10);
+    // Validar y parsear expiry date (acepta MM/YY o MM/YYYY)
+    const expiryParts = cardData.expiry.trim().split('/');
+    if (expiryParts.length !== 2) {
+      throw new Error(`Invalid card data: Invalid expiry date format (use MM/YY or MM/YYYY)`);
+    }
+    
+    const [expMonth, expYear] = expiryParts;
+    const monthNum = parseInt(expMonth.trim(), 10);
+    let yearNum = parseInt(expYear.trim(), 10);
+    
+    // Validar mes
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      throw new Error(`Invalid card data: Invalid expiry month`);
+    }
+    
+    // Convertir año de 2 dígitos a 4 dígitos si es necesario
+    if (yearNum < 100) {
+      yearNum = 2000 + yearNum;
+    }
     
     const paymentMethod = await stripe.paymentMethods.create({
       type: 'card',
       card: {
         number: cleanCardNumber,
-        exp_month: parseInt(expMonth, 10),
-        exp_year: fullYear,
+        exp_month: monthNum,
+        exp_year: yearNum,
         cvc: cardData.cvv,
       },
       billing_details: cardData.cardholderName ? {
