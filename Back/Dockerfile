@@ -27,8 +27,6 @@ RUN npx prisma generate --schema=prisma/audit.prisma
 RUN npx prisma generate --schema=prisma/billing.prisma
 # Ahora construye la app (TypeScript ya puede encontrar los clientes de Prisma)
 RUN npm run build
-# Elimina las dependencias de desarrollo
-RUN npm prune --omit=dev
 
 
 
@@ -44,6 +42,11 @@ COPY --from=build $DIR/node_modules node_modules
 COPY --from=build $DIR/dist dist
 COPY --from=build $DIR/public public
 COPY --from=build $DIR/prisma prisma
+
+# Generar clientes de Prisma en producción (después de copiar node_modules)
+RUN npx prisma generate --schema=prisma/schema.prisma
+RUN npx prisma generate --schema=prisma/audit.prisma
+RUN npx prisma generate --schema=prisma/billing.prisma
 
 # Permiso de subida de imagenes de perfil
 RUN chown -R node:node public/profile-pictures && \
