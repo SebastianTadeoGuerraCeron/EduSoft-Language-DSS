@@ -52,6 +52,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.local
 .env
 
+# Front and Back .env files
+Front/.env.development
+Back/.env
+
 # caches
 .eslintcache
 .cache
