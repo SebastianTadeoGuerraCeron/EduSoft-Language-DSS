@@ -1,7 +1,6 @@
 import axios from "axios";
 
-export const API_URL = "http://localhost:3000"; // development
-// export const API_URL = 'https://edusoft-language.onrender.com'; // production
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
