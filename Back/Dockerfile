@@ -38,6 +38,7 @@ ENV NODE_ENV=production
 ENV USER=node
 # copiar todos los archivo de generados en BUILD
 COPY --from=build /usr/bin/dumb-init /usr/bin/dumb-init
+COPY --from=build $DIR/package.json package.json
 COPY --from=build $DIR/node_modules node_modules
 COPY --from=build $DIR/dist dist
 COPY --from=build $DIR/public public
