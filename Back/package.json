@@ -28,6 +28,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@octokit/rest": "^22.0.1",
     "@prisma/client": "^6.9.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -38,7 +39,6 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
-    "octokit": "^5.0.5",
     "stripe": "^20.1.0"
   }
 }
