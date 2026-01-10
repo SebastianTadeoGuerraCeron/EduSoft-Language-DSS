@@ -4,8 +4,10 @@ import { API_URL } from '../../../API';
 import { HeaderGame } from '../../../components/HeaderGame';
 import { useAuth } from '../../../context/AuthContext';
 import { SENTENCES_STACK_FOR_READING } from '../CONST_VALUES';
+import { getRandomElements, shuffleArray } from '../../../utils/gameRandomization';
 
-const passages = SENTENCES_STACK_FOR_READING.sort(() => Math.random() - 0.5).slice(0, 5); // Selecciona 5 lecturas aleatorias
+// Selecciona 5 lecturas aleatorias usando utility function documentada
+const passages = getRandomElements(SENTENCES_STACK_FOR_READING, 5);
 console.log(passages); // TODO: eliminar en producción
 
 export const Reading = () => {
@@ -20,9 +22,8 @@ export const Reading = () => {
 	const { user } = useAuth();
 
 	const current = passages[idx];
-	const choices = [...current.answers, ...current.distractors].sort(
-		() => Math.random() - 0.5
-	);
+	// Mezclar respuestas con utility function para aleatorización no-crítica
+	const choices = shuffleArray([...current.answers, ...current.distractors]);
 
 	// al cambiar de lectura, reinicia
 	useEffect(() => {
@@ -192,13 +193,12 @@ export const Reading = () => {
 								disabled={verified}
 								onChange={(e) => selectWord(i, e.target.value)}
 								onKeyDown={(e) => handleSelectKeyDown(e, i)}
-								className={`mx-1 border rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-									verified && filled === correct
+								className={`mx-1 border rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${verified && filled === correct
 										? 'bg-green-100'
 										: wrong
-										? 'bg-red-100'
-										: ''
-								}`}
+											? 'bg-red-100'
+											: ''
+									}`}
 								aria-label={`Blank ${i + 1} of ${current.answers.length}`}
 								aria-describedby={wrong ? `correction-${i}` : undefined}
 							>
@@ -210,7 +210,7 @@ export const Reading = () => {
 								))}
 							</select>
 
-							{/* 💡 Corrección visible al verificar si estaba mal */}
+							{/* Correction visible when checking if answer was wrong */}
 							{wrong && (
 								<span
 									id={`correction-${i}`}
@@ -451,7 +451,7 @@ const GameResumeDetails = ({ results, score, onPlayAgain }) => {
 												className='text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-2 border-blue-300'
 												tabIndex={0}
 											>
-												💡 Tip: Read the entire passage carefully and consider the
+												Tip: Read the entire passage carefully and consider the
 												context. Look for clues that help determine the right word choice.
 											</p>
 										</div>
@@ -467,7 +467,7 @@ const GameResumeDetails = ({ results, score, onPlayAgain }) => {
 			<div className={`mt-8 p-4 rounded-lg ${performance.bg} border border-opacity-30`}>
 				<div className={`text-center ${performance.color} font-semibold`} tabIndex={0}>
 					{score >= 90 &&
-						'🎉 Outstanding! Your reading comprehension is excellent. Keep up the great work!'}
+						'Outstanding! Your reading comprehension is excellent. Keep up the great work!'}
 					{score >= 75 &&
 						score < 90 &&
 						"👏 Good job! You're showing strong reading skills. A little more practice and you'll be perfect!"}
@@ -475,7 +475,7 @@ const GameResumeDetails = ({ results, score, onPlayAgain }) => {
 						score < 75 &&
 						"💪 You're making progress! Focus on understanding context and vocabulary relationships to improve your results."}
 					{score < 60 &&
-						'🎯 Keep practicing! Reading comprehension takes time to develop. Review the feedback and try again.'}
+						'Keep practicing! Reading comprehension takes time to develop. Review the feedback and try again.'}
 				</div>
 			</div>
 

@@ -4,13 +4,15 @@ import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../API';
 import { HeaderGame } from '../../../components/HeaderGame';
 import { SENTENCES_STACK_FOR_LISTENING } from '../CONST_VALUES';
+import { getRandomElements } from '../../../utils/gameRandomization';
 
 const TOTAL_QUESTIONS = 5;
 const POINTS_PER_QUESTION = 100 / TOTAL_QUESTIONS; // Cada pregunta vale 20 puntos
 
 // Función para barajar un arreglo y tomar los primeros N elementos.
+// Usando utility function documentada para aleatorización no-crítica en juegos
 const shuffleAndPick = (arr, num) => {
-	return [...arr].sort(() => 0.5 - Math.random()).slice(0, num);
+	return getRandomElements(arr, num);
 };
 
 // Componente para la pantalla de juego
@@ -152,7 +154,7 @@ const GameScreen = ({ onGameOver }) => {
 		if (isCorrect) {
 			// Se suman los puntos por pregunta
 			setScore((prev) => prev + POINTS_PER_QUESTION);
-			setStatusMessage('<p class="text-2xl font-bold text-green-500">✅ Correct!</p>');
+			setStatusMessage('<p class="text-2xl font-bold text-green-500">Correct!</p>');
 		} else {
 			setStatusMessage(`
                 <p class="text-red-500">Not quite!</p>
@@ -220,7 +222,7 @@ const GameScreen = ({ onGameOver }) => {
 
 			<div className='my-8 flex flex-col items-center'>
 				<p className='text-2xl sm:text-3xl text-gray-800 mb-4 bg-gray-100 p-4 rounded-lg'
-				tabIndex={0}>
+					tabIndex={0}>
 					{currentSentence.display}
 				</p>
 
@@ -235,9 +237,8 @@ const GameScreen = ({ onGameOver }) => {
 					>
 						<span className='text-sm font-medium text-gray-700'>🎛️ Audio Settings</span>
 						<svg
-							className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
-								showAudioControls ? 'rotate-180' : ''
-							}`}
+							className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showAudioControls ? 'rotate-180' : ''
+								}`}
 							fill='none'
 							stroke='currentColor'
 							viewBox='0 0 24 24'
@@ -254,9 +255,8 @@ const GameScreen = ({ onGameOver }) => {
 					{/* Collapsible Audio Controls Panel */}
 					<div
 						id='audio-controls-panel'
-						className={`transition-all duration-300 ease-in-out overflow-hidden ${
-							showAudioControls ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'
-						}`}
+						className={`transition-all duration-300 ease-in-out overflow-hidden ${showAudioControls ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'
+							}`}
 					>
 						<div className='p-4 bg-white rounded-lg border border-gray-200 shadow-sm'>
 							{/* Volume Control */}
@@ -361,7 +361,7 @@ const GameScreen = ({ onGameOver }) => {
 			</form>
 			<div className='h-16 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100'>
 				<div dangerouslySetInnerHTML={{ __html: statusMessage }}
-				tabIndex={0} />
+					tabIndex={0} />
 			</div>
 			{isRoundComplete && (
 				<button
@@ -409,7 +409,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 	return (
 		<div className='w-full max-w-4xl mx-auto my-16 bg-white shadow-2xl rounded-2xl p-4 sm:p-8 md:p-12 text-left'>
 			<h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center'
-			tabIndex={0}>
+				tabIndex={0}>
 				Challenge Complete!
 			</h1>
 
@@ -451,7 +451,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			</div>
 
 			<p className='text-gray-600 text-center mb-8 sm:mb-10'
-			tabIndex={0}>
+				tabIndex={0}>
 				Let's review your listening comprehension performance. Use this feedback to
 				improve your auditory skills.
 			</p>
@@ -461,7 +461,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 				{correctAnswers.length > 0 && (
 					<section>
 						<h2 className='text-xl sm:text-2xl font-bold text-green-700 mb-4 flex items-center'
-						tabIndex={0}>
+							tabIndex={0}>
 							<span className='bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg'>
 								✓
 							</span>
@@ -475,7 +475,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 								>
 									<div className='flex items-start gap-3'>
 										<div className='flex-shrink-0 bg-green-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm'
-										tabIndex={0}>
+											tabIndex={0}>
 											{results.indexOf(r) + 1}
 										</div>
 										<div tabIndex={0}>
@@ -496,7 +496,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 				{incorrectAnswers.length > 0 && (
 					<section>
 						<h2 className='text-xl sm:text-2xl font-bold text-blue-700 mb-4 flex items-center'
-						tabIndex={0}>
+							tabIndex={0}>
 							<span className='bg-gray-200 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg'>
 								✗
 							</span>
@@ -507,26 +507,26 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 								<div key={i} className='p-4 bg-gray-50 border border-gray-200 rounded-lg'>
 									<div className='flex items-start gap-3'>
 										<div className='flex-shrink-0 bg-gray-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm'
-										tabIndex={0}>
+											tabIndex={0}>
 											{results.indexOf(r) + 1}
 										</div>
 										<div>
 											<p tabIndex={0}>{renderQuestion(r.question, r.correctAnswer)} </p>
 											<p className='text-sm text-gray-600 mb-2'
-											tabIndex={0}>
+												tabIndex={0}>
 												Correct answer:{' '}
 												<span className='font-medium text-blue-700' tabIndex={0}>
 													{r.correctAnswer}
 												</span>
 											</p>
 											<p className='text-sm text-gray-600 mb-2'
-											tabIndex={0}>
+												tabIndex={0}>
 												Your answer:{' '}
 												<span className='font-medium text-blue-700' tabIndex={0}>{r.userAnswer}</span>
 											</p>
 											<p className='text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-2 border-blue-300'
-											tabIndex={0}>
-												💡 Tip: Listen carefully to the pronunciation and context. Try to
+												tabIndex={0}>
+												Tip: Listen carefully to the pronunciation and context. Try to
 												understand the meaning of the sentence to identify the missing
 												word.
 											</p>
@@ -543,7 +543,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 			<div className={`mt-8 p-4 rounded-lg ${performance.bg} border border-opacity-30`}>
 				<div className={`text-center ${performance.color} font-semibold`} tabIndex={0}>
 					{finalScore >= 90 &&
-						'🎉 Outstanding! Your listening skills are excellent. Keep up the great work!'}
+						'Outstanding! Your listening skills are excellent. Keep up the great work!'}
 					{finalScore >= 75 &&
 						finalScore < 90 &&
 						"👏 Good job! You're showing strong listening comprehension. A little more practice and you'll be perfect!"}
@@ -551,7 +551,7 @@ const GameOverScreen = ({ results, onPlayAgain }) => {
 						finalScore < 75 &&
 						"💪 You're making progress! Focus on listening carefully to pronunciation and context clues to improve your results."}
 					{finalScore < 60 &&
-						'🎯 Keep practicing! Listening skills take time to develop. Review the feedback and try again.'}
+						'Keep practicing! Listening skills take time to develop. Review the feedback and try again.'}
 				</div>
 			</div>
 

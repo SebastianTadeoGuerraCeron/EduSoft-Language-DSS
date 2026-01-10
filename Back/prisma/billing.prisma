@@ -1,0 +1,53 @@
+// ========== SCHEMA SEPARADO PARA DATOS SENSIBLES DE BILLING ==========
+// Esta BD almacena datos de tarjetas de crédito/débito encriptados
+// Cumple con HU08: Cifrado de Datos en Reposo (BD separada)
+// La clave de encriptación está separada de esta BD
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/billing-client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("BILLING_DATABASE_URL")
+  directUrl = env("BILLING_DIRECT_URL")
+}
+
+// ========== INFORMACIÓN DE TARJETAS ENCRIPTADAS ==========
+// Todos los datos sensibles están cifrados con AES-256-GCM
+// Un usuario puede tener múltiples tarjetas
+
+model BillingInfo {
+  id                    String   @id @default(cuid())
+  userId                String   // Referencia al usuario (no FK para separación)
+  
+  // Datos encriptados con AES-256-GCM
+  encryptedCardNumber   String   // Número de tarjeta encriptado
+  encryptedCVV          String   // CVV encriptado (solo para procesamiento inmediato)
+  encryptedExpiry       String   // Fecha de expiración encriptada (MM/YY)
+  cardholderName        String   // Nombre del titular
+  
+  // Metadatos no sensibles (para UI)
+  lastFourDigits        String   // Últimos 4 dígitos para mostrar ****-****-****-4242
+  cardBrand             String   // VISA, MASTERCARD, AMEX, etc.
+  
+  // Datos de encriptación (necesarios para descifrar)
+  iv                    String   // Vector de inicialización único (base64)
+  authTag               String   // Tag de autenticación GCM (base64) - HU07 Integridad
+  
+  // Hash de integridad para verificar que los datos no fueron manipulados
+  integrityHash         String   // SHA-256 de todos los campos encriptados
+  
+  // Metadatos
+  isDefault             Boolean  @default(false) // Solo una tarjeta puede ser default por usuario
+  isActive              Boolean  @default(true)
+  nickname              String?  // Nombre personalizado (ej: "Tarjeta personal", "Trabajo")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Índice para buscar tarjetas por usuario
+  @@index([userId])
+  // Asegurar que solo haya una tarjeta con los mismos últimos 4 dígitos por usuario
+  @@unique([userId, lastFourDigits])
+}

@@ -1,37 +1,251 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  ADMIN
+  TUTOR
+  STUDENT_PRO
+  STUDENT_FREE
+}
+
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  username       String
-  password       String
-  answerSecret   String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  profilePicture String        @default("default-profile-picture.jpg")
-  gameHistory    GameHistory[]
+  id                  String              @id @default(cuid())
+  email               String              @unique
+  username            String
+  password            String
+  answerSecret        String
+  role                Role                @default(STUDENT_FREE)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  profilePicture      String              @default("default-profile-picture.jpg")
+  failedLoginAttempts Int                 @default(0)
+  lockedUntil         DateTime?
+  gameHistory         GameHistory[]
+  lessonsCreated      Lesson[]            @relation("LessonCreator")
+  lessonAssignments   LessonAssignment[]  @relation("LessonAssignments")
+  lessonProgress      LessonProgress[]    @relation("LessonProgress")
+  examsCreated        Exam[]              @relation("ExamCreator")
+  examAttempts        ExamAttempt[]       @relation("ExamAttempts")
+  subscription        Subscription?
+  payments            Payment[]
 }
 
 model GameHistory {
   id       String   @id @default(cuid())
-  user     User     @relation(fields: [userId], references: [id])
   userId   String
   game     String
   score    Int
   playedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+}
+
+enum LessonLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Lesson {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  type        LessonType     @default(TEXT)
+  level       LessonLevel    @default(BEGINNER)
+  isPremium   Boolean        @default(false)
+  content     String?
+  miniatura   String?
+  duration    Int?           // en minutos
+  createdBy   String
+  tutor       User           @relation("LessonCreator", fields: [createdBy], references: [id])
+  modules     LessonModule[]
+  assignments LessonAssignment[]
+  progress    LessonProgress[]
+  exams       Exam[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model LessonModule {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  titulo    String
+  contenido String
+  orden     Int      // 1-5 máximo
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lessonId, orden])
+}
+
+model LessonAssignment {
+  id         String   @id @default(cuid())
+  lessonId   String
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("LessonAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([lessonId, userId])
+}
+
+model LessonProgress {
+  id             String   @id @default(cuid())
+  lessonId       String
+  lesson         Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation("LessonProgress", fields: [userId], references: [id], onDelete: Cascade)
+  percentage     Int      @default(0)
+  status         String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  modulosVistos  Int      @default(0)
+  lastAccessAt   DateTime @default(now())
+  completedAt    DateTime?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([lessonId, userId])
+}
+
+// ========== SISTEMA DE EXÁMENES ==========
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  FILL_BLANK
+}
+
+enum ExamAttemptStatus {
+  IN_PROGRESS
+  FINISHED
+  ABANDONED
+}
+
+model Exam {
+  id                  String         @id @default(cuid())
+  title               String
+  description         String
+  lessonId            String
+  lesson              Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isPremium           Boolean        @default(false)
+  timeLimit           Int            // en minutos
+  passingPercentage   Int            @default(60) // porcentaje para aprobar
+  createdBy           String
+  tutor               User           @relation("ExamCreator", fields: [createdBy], references: [id])
+  questions           Question[]
+  attempts            ExamAttempt[]
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model Question {
+  id              String       @id @default(cuid())
+  examId          String
+  exam            Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  text            String
+  type            QuestionType @default(MULTIPLE_CHOICE)
+  options         Json?        // Array de opciones para MULTIPLE_CHOICE
+  correctAnswer   String       // Respuesta correcta
+  points          Int          @default(1)
+  order           Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([examId, order])
+}
+
+model ExamAttempt {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation("ExamAttempts", fields: [userId], references: [id], onDelete: Cascade)
+  examId       String
+  exam         Exam              @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers      Json?             // { questionId: userAnswer }
+  score        Float?            // puntaje obtenido (porcentaje)
+  totalPoints  Int?              // puntos totales obtenidos
+  maxPoints    Int?              // puntos máximos posibles
+  status       ExamAttemptStatus @default(IN_PROGRESS)
+  startedAt    DateTime          @default(now())
+  finishedAt   DateTime?
+  timeTaken    Int?              // tiempo tomado en segundos
+  auditLogs    ExamAuditLog[]
+
+  @@unique([userId, examId, startedAt])
+}
+
+model ExamAuditLog {
+  id           String      @id @default(cuid())
+  attemptId    String
+  attempt      ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  activityType String      // tab_switch, window_blur, copy_paste, etc.
+  details      Json?       // detalles adicionales
+  timestamp    DateTime    @default(now())
+}
+
+// ========== SISTEMA DE SUSCRIPCIÓN Y BILLING ==========
+
+enum SubscriptionPlan {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  PAST_DUE
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan   @default(MONTHLY)
+  status          SubscriptionStatus @default(PENDING)
+  stripeCustomerId    String?        // ID del cliente en Stripe
+  stripeSubscriptionId String?       // ID de la suscripción en Stripe
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  autoRenewal     Boolean            @default(true)
+  canceledAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  payments        Payment[]
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  amount          Float         // Monto en centavos
+  currency        String        @default("USD")
+  status          PaymentStatus @default(PENDING)
+  stripePaymentIntentId String? // ID del PaymentIntent en Stripe
+  transactionId   String?       @unique // ID único de transacción
+  integrityHash   String?       // Hash SHA-256 para verificar integridad (HU07)
+  description     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

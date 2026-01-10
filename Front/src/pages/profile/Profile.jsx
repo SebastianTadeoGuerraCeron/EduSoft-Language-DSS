@@ -4,12 +4,17 @@ import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../API';
 import FontControls from '../../components/FontControl';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
+import DeleteAccountModal from '../../components/DeleteAccountModal';
+import { getPaymentHistory, formatSubscriptionDate, formatPrice } from '../../services/billingService';
+import { deleteUserAccount } from '../../services/userService';
 
 export const Profile = () => {
 	const [profileUpdateMessage, setProfileUpdateMessage] = useState('');
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 	const [showLogoutModal, setShowLogoutModal] = useState(false);
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [deletingAccount, setDeletingAccount] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem('user') || '{}');
 	const username = user?.username || 'Your Profile';
@@ -23,6 +28,10 @@ export const Profile = () => {
 	});
 	const [loading, setLoading] = useState(true);
 	const [ranking, setRanking] = useState(null);
+
+	// Estado para historial de pagos
+	const [payments, setPayments] = useState([]);
+	const [loadingPayments, setLoadingPayments] = useState(false);
 
 	const totalScore = progress.history.reduce((acc, row) => acc + (row.score || 0), 0);
 	const level = Math.floor(totalScore / 500);
@@ -71,6 +80,48 @@ export const Profile = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [user?.id]);
 
+	useEffect(() => {
+		const fetchPaymentHistory = async () => {
+			if (!user || !user.id) return;
+			// Solo cargar historial de pagos para estudiantes
+			if (!['STUDENT_FREE', 'STUDENT_PRO'].includes(user.role)) return;
+			
+			try {
+				setLoadingPayments(true);
+				const historyData = await getPaymentHistory();
+				setPayments(historyData.payments || []);
+			} catch (error) {
+				console.log('No payment history available');
+				setPayments([]);
+			} finally {
+				setLoadingPayments(false);
+			}
+		};
+		fetchPaymentHistory();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user?.id, user?.role]);
+
+	useEffect(() => {
+		const fetchPaymentHistory = async () => {
+			if (!user || !user.id) return;
+			// Solo cargar historial de pagos para estudiantes
+			if (!['STUDENT_FREE', 'STUDENT_PRO'].includes(user.role)) return;
+			
+			try {
+				setLoadingPayments(true);
+				const historyData = await getPaymentHistory();
+				setPayments(historyData.payments || []);
+			} catch (error) {
+				console.log('No payment history available');
+				setPayments([]);
+			} finally {
+				setLoadingPayments(false);
+			}
+		};
+		fetchPaymentHistory();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user?.id, user?.role]);
+
 	let joinedText = '';
 	if (createdAt) {
 		const createdDate = new Date(createdAt);
@@ -94,6 +145,26 @@ export const Profile = () => {
 		setShowLogoutModal(false);
 		logout();
 		navigate('/');
+	};
+
+	const handleDeleteAccount = () => {
+		setShowDeleteModal(true);
+	};
+
+	const confirmDeleteAccount = async (password) => {
+		try {
+			setDeletingAccount(true);
+			await deleteUserAccount(password);
+			
+			// Limpiar sesión y redirigir
+			logout();
+			navigate('/', { state: { accountDeleted: true } });
+		} catch (error) {
+			console.error('Error deleting account:', error);
+			throw new Error(error.response?.data?.error || 'Failed to delete account');
+		} finally {
+			setDeletingAccount(false);
+		}
 	};
 
 	return (
@@ -182,6 +253,28 @@ export const Profile = () => {
 											>
 												Log Out
 											</button>
+										</div>
+										<div className='flex flex-row gap-2'>
+											{user?.role === 'STUDENT_PRO' && (
+												<Link
+													to='/billing/subscription'
+													className='rounded-[20px] bg-purple-100 hover:bg-purple-200 h-10 flex items-center justify-center px-4 min-w-[84px] max-w-[180px] font-medium focus:outline-2 focus:outline-purple-400 transition-colors duration-150'
+													tabIndex={0}
+													title='Manage your subscription'
+												>
+													Manage Subscription
+												</Link>
+											)}
+											{user?.role === 'STUDENT_FREE' && (
+												<Link
+													to='/billing/pricing'
+													className='rounded-[20px] bg-gradient-to-r from-purple-500 to-purple-600 text-white h-10 flex items-center justify-center px-4 min-w-[84px] max-w-[180px] font-medium focus:outline-2 focus:outline-purple-400 hover:from-purple-600 hover:to-purple-700 transition-all duration-150'
+													tabIndex={0}
+													title='Upgrade to Premium'
+												>
+													Upgrade to Pro
+												</Link>
+											)}
 										</div>
 										<FontControls />
 									</nav>
@@ -281,6 +374,107 @@ export const Profile = () => {
 									</table>
 								</div>
 							</section>
+
+							{/* Payment History - Solo para estudiantes */}
+							{['STUDENT_FREE', 'STUDENT_PRO'].includes(user?.role) && (
+								<section className='self-stretch pt-5 px-4 pb-3'>
+									<h2 className='leading-7 font-bold text-lg md:text-[22px]' tabIndex={0}>
+										Payment History
+									</h2>
+									<div className='self-stretch rounded-xl bg-[#fafafa] border-[#d4dee3] border-solid border-[1px] overflow-x-auto'>
+										<table className='w-full text-left min-w-[400px]'>
+											<caption className='sr-only'>Payment history table</caption>
+											<thead>
+												<tr>
+													<th scope='col' className='py-3 px-4 font-medium' tabIndex={0}>
+														Date
+													</th>
+													<th scope='col' className='py-3 px-4 font-medium' tabIndex={0}>
+														Description
+													</th>
+													<th scope='col' className='py-3 px-4 font-medium' tabIndex={0}>
+														Amount
+													</th>
+													<th scope='col' className='py-3 px-4 font-medium' tabIndex={0}>
+														Status
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												{loadingPayments ? (
+													<tr>
+														<td colSpan={4} className='py-2 px-4 text-center' tabIndex={0}>
+															Loading...
+														</td>
+													</tr>
+												) : payments.length === 0 ? (
+													<tr>
+														<td colSpan={4} className='py-2 px-4 text-center' tabIndex={0}>
+															{user?.role === 'STUDENT_FREE' ? (
+																<span>
+																	No payment history yet.{' '}
+																	<Link 
+																		to='/billing/pricing' 
+																		className='text-purple-600 hover:text-purple-700 font-medium'
+																	>
+																		Upgrade to Pro
+																	</Link>
+																	{' '}to unlock premium features.
+																</span>
+															) : (
+																'No payment history yet.'
+															)}
+														</td>
+													</tr>
+												) : (
+													payments.map((payment, idx) => (
+														<tr
+															key={payment.id || idx}
+															tabIndex={0}
+															className='focus:outline-2 focus:outline-blue-400'
+														>
+															<td className='py-2 px-4 text-[#0d171c]'>
+																{formatSubscriptionDate(payment.createdAt)}
+															</td>
+															<td className='py-2 px-4 text-[#4f7a96]'>
+																{payment.description || 'Subscription payment'}
+															</td>
+															<td className='py-2 px-4 text-[#0d171c] font-medium'>
+																{formatPrice(payment.amount / 100, payment.currency)}
+															</td>
+															<td className='py-2 px-4'>
+																<span
+																	className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+																		payment.status === 'COMPLETED'
+																			? 'bg-green-100 text-green-800'
+																			: payment.status === 'PENDING'
+																			? 'bg-yellow-100 text-yellow-800'
+																			: 'bg-red-100 text-red-800'
+																	}`}
+																>
+																	{payment.status}
+																</span>
+															</td>
+														</tr>
+													))
+												)}
+											</tbody>
+										</table>
+									</div>
+								</section>
+							)}
+
+							{/* Delete Account Button - HU10 */}
+							<section className='self-stretch px-4 py-6 border-t border-[#d4dee3]'>
+								<button
+									onClick={handleDeleteAccount}
+									className='rounded-[20px] bg-red-100 hover:bg-red-200 h-10 flex items-center justify-center px-6 font-medium focus:outline-2 focus:outline-red-400 transition-colors duration-150 text-red-700'
+									tabIndex={0}
+									title='Permanently delete your account and all data'
+								>
+									Delete Account
+								</button>
+							</section>
 						</div>
 					</header>
 				</section>
@@ -294,6 +488,14 @@ export const Profile = () => {
 				onCancel={() => setShowLogoutModal(false)}
 				confirmText="Sign Out"
 				cancelText="Cancel"
+			/>
+
+			<DeleteAccountModal
+				isOpen={showDeleteModal}
+				username={username}
+				loading={deletingAccount}
+				onConfirm={confirmDeleteAccount}
+				onCancel={() => setShowDeleteModal(false)}
 			/>
 		</main>
 	);

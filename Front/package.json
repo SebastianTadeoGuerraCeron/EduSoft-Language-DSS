@@ -1,7 +1,7 @@
 {
-  "name": "proyecto-usabilidad",
+  "name": "proyecto-desarrollo-ss-grupo1",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.6.0",
     "@tailwindcss/vite": "^4.1.10",
+    "axios": "^1.13.2",
     "framer-motion": "^12.18.1",
+    "jwt-decode": "^4.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.6.2",
