@@ -9,12 +9,12 @@ ENV NODE_ENV=production
 # instalar para mayor compatibilidad de node con docker
 RUN apk update && apk add --no-cache dumb-init=1.2.5-r2
 # copiar los archivos json para instalar las depencencias
-COPY package*.json .
+COPY package*.json ./
 # SEGUIRIDAD: instalar lib y dependencias  privadas, y borrar el file para no tener el TOKEN
 RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ".npmrc" && \
   rm -f .npmrc
 # copia la configuracion de TS
-COPY tsconfig*.json .
+COPY tsconfig*.json ./
 # copia los esquemas de Prisma primero
 COPY prisma ./prisma
 # copia los archivos de la app
@@ -27,7 +27,7 @@ RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npx prisma generate --schema=prisma/audit.prisma
 RUN npx prisma generate --schema=prisma/billing.prisma
 # Elimina las dependencias de desarrollo
-RUN npm prune --production
+RUN npm prune --omit=dev
 
 
 
@@ -46,7 +46,7 @@ COPY --from=build $DIR/prisma prisma
 
 # Permiso de subida de imagenes de perfil
 RUN chown -R node:node public/profile-pictures && \
-    chmod -R 700 public/profile-pictures
+  chmod -R 700 public/profile-pictures
 
 USER $USER
 EXPOSE ${PORT}
