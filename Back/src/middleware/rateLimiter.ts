@@ -18,6 +18,7 @@ export const registrationLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skipFailedRequests: true, // Solo contar requests exitosos para evitar problemas con trust proxy
   handler: (_req, res) => {
     res.status(429).json({
       error:
@@ -41,6 +42,7 @@ export const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // No contar intentos exitosos
+  skipFailedRequests: true, // Solo contar requests exitosos para evitar problemas con trust proxy
   handler: (_req, res) => {
     res.status(429).json({
       error:
@@ -63,6 +65,7 @@ export const passwordRecoveryLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skipFailedRequests: true, // Solo contar requests exitosos para evitar problemas con trust proxy
   handler: (_req, res) => {
     res.status(429).json({
       error:
