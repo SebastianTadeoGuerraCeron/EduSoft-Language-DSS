@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "npx tsx watch index.ts",
     "dev:bun": "bun --watch index.ts",
-    "build": "tsc",
+    "build": "tsc && npx prisma generate",
     "start": "node dist/index.js",
+    "deploy": "npx prisma migrate deploy && npm start",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },

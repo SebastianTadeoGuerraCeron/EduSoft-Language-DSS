@@ -15,12 +15,17 @@ RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ".npmrc" && \
   rm -f .npmrc
 # copia la configuracion de TS
 COPY tsconfig*.json .
+# copia los esquemas de Prisma primero
+COPY prisma ./prisma
 # copia los archivos de la app
 COPY . .
 # Construye la app 
 RUN npm ci --include=dev
 RUN npm run build
-RUN npx prisma generate
+# Genera los 3 clientes de Prisma
+RUN npx prisma generate --schema=prisma/schema.prisma
+RUN npx prisma generate --schema=prisma/audit.prisma
+RUN npx prisma generate --schema=prisma/billing.prisma
 # Elimina las dependencias de desarrollo
 RUN npm prune --production
 
