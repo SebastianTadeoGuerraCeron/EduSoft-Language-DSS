@@ -1,9 +1,21 @@
-// Helper para obtener Octokit con dynamic import (ESM package en CommonJS)
+// Helper para obtener Octokit (paquete ESM) desde runtime CommonJS.
+
+let octokitPromise: Promise<any> | null = null;
 const getOctokit = async () => {
-  const { Octokit } = await import("@octokit/rest");
-  return new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-  });
+  if (!octokitPromise) {
+    const importModule = new Function(
+      "modulePath",
+      "return import(modulePath)"
+    ) as (modulePath: string) => Promise<any>;
+
+    octokitPromise = importModule("@octokit/rest").then(({ Octokit }) =>
+      new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+      })
+    );
+  }
+
+  return octokitPromise;
 };
 
 interface UploadOptions {
