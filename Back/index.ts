@@ -15,7 +15,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Confiar en proxies para obtener IP real (X-Forwarded-For)
-app.set("trust proxy", true);
+// Usar 1 en lugar de true para evitar el error ERR_ERL_PERMISSIVE_TRUST_PROXY
+app.set("trust proxy", 1);
 
 // ============================================================================
 // HU07 - Headers de seguridad globales
