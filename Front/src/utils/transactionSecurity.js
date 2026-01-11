@@ -289,8 +289,9 @@ export const validateCardDataFormat = (cardData) => {
     }
 
     // Validar fecha de expiración (MM/YY o MM/YYYY)
-    const expiry = cardData.expiry || '';
-    if (!/^(0[1-9]|1[0-2])\/(2[0-9]|[0-9]{4})$/.test(expiry)) {
+    const expiry = (cardData.expiry || '').trim();
+    // Acepta MM/YY (cualquier YY 00-99) o MM/YYYY (20xx)
+    if (!/^(0[1-9]|1[0-2])\/(\d{2}|20\d{2})$/.test(expiry)) {
         errors.push('Invalid expiry date format (use MM/YY or MM/YYYY)');
     }
 
