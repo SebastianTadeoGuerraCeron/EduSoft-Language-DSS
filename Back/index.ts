@@ -23,6 +23,9 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Deshabilitar X-Powered-By header para no exponer información del framework
+app.disable('x-powered-by');
+
 // Confiar en proxies para obtener IP real (X-Forwarded-For)
 // Usar 1 en lugar de true para evitar el error ERR_ERL_PERMISSIVE_TRUST_PROXY
 app.set("trust proxy", 1);

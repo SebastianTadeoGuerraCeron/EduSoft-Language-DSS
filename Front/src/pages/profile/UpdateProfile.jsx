@@ -47,6 +47,16 @@ export const UpdateProfile = () => {
 		}
 	}, [selectedFile, profilePicture]);
 
+	// Sanitizar URL para prevenir XSS
+	const getSafeImageUrl = (url) => {
+		if (!url) return '/default-profile-picture.jpg';
+		// Solo permitir URLs del servidor o rutas locales válidas
+		if (url.startsWith(API_URL) || url.startsWith('/')) {
+			return url;
+		}
+		return '/default-profile-picture.jpg';
+	};
+
 	const handleChange = (e) => {
 		if (e.target.name === 'email') {
 			setForm({ ...form, [e.target.name]: e.target.value.toLowerCase() });
@@ -177,7 +187,7 @@ export const UpdateProfile = () => {
 									<img
 										className='w-24 h-24 md:w-32 md:h-32 rounded-full object-cover min-h-[96px] md:min-h-[128px] border border-[#d4dee3]'
 										alt='Profile picture'
-										src={previewUrl}
+										src={getSafeImageUrl(previewUrl)}
                                         tabIndex={0}
 									/>
 									<label
