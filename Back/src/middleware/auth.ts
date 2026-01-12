@@ -115,7 +115,11 @@ export const authenticate = (
     const token = authHeader.split(" ")[1];
 
     // Verificar el token
-    const jwtSecret = process.env.JWT_SECRET || "fallback-secret-key";
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      res.status(500).json({ error: "Server configuration error: JWT_SECRET not configured" });
+      return;
+    }
     const decoded = jwt.verify(token, jwtSecret) as {
       userId: string;
       role: string;

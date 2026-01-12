@@ -11,6 +11,15 @@ import { routerUser } from "./src/routes/user";
 // Cargar variables de entorno
 dotenv.config();
 
+// ============================================================================
+// Validar variables de entorno críticas al inicio
+// ============================================================================
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
+  console.error('Please configure JWT_SECRET in your .env file');
+  process.exit(1);
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 

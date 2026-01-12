@@ -164,7 +164,10 @@ export const comparePassword = async (
  * res.json({ token, user: { id: user.id, name: user.name } });
  */
 export const generateToken = (userId: string, role: string): string => {
-  const jwtSecret = process.env.JWT_SECRET || "fallback-secret-key";
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET environment variable is not configured');
+  }
   const jwtExpiration = process.env.JWT_EXPIRATION || "7d";
 
   return jwt.sign({ userId, role }, jwtSecret, {
