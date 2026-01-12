@@ -12,10 +12,15 @@ export const Progress = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const token = localStorage.getItem("token");
     if (!storedUser || !storedUser.id) return;
 
     // Cargar historial de juegos
-    fetch(`${API_URL}/user/progress?userId=${storedUser.id}`)
+    fetch(`${API_URL}/user/progress?userId=${storedUser.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => setProgress({ history: data.history || [] }));
 

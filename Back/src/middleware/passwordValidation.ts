@@ -1,17 +1,85 @@
-import type { NextFunction, Request, Response } from "express";
-
 /**
- * HU03 - Middleware de Validación de Calidad de Contraseñas
- * Implementa FIA_SOS.1 (Verification of secrets)
+ * ============================================================================
+ * HU03 - MIDDLEWARE DE VALIDACIÓN DE CALIDAD DE CONTRASEÑAS
+ * ============================================================================
  * 
- * Criterios de Aceptación:
- * - Validación regex: Mínimo 8 caracteres, 1 mayúscula, 1 número, 1 carácter especial
- * - Rechazo de contraseñas que contengan el nombre del usuario o números secuenciales
- * - Protección contra ataques de diccionario
- * - Prevención de patrones de teclado comunes
+ * @module passwordValidation
+ * @description
+ * Sistema completo de validación de contraseñas que implementa múltiples
+ * capas de verificación para garantizar que las contraseñas cumplan con
+ * estándares de seguridad modernos.
+ * 
+ * ## Historia de Usuario:
+ * 
+ * ### HU03 - Verificación de Calidad de Contraseñas (FIA_SOS.1)
+ * 
+ * **Criterios de Aceptación:**
+ * 1. Validación regex: Mínimo 8 caracteres
+ * 2. Al menos 1 letra mayúscula
+ * 3. Al menos 1 número
+ * 4. Al menos 1 carácter especial
+ * 5. Rechazo de contraseñas que contengan el username
+ * 6. Rechazo de números secuenciales (123, 111, etc.)
+ * 7. Protección contra contraseñas de diccionario
+ * 8. Detección de patrones de teclado (qwerty, asdf)
+ * 
+ * ## Mapeo Common Criteria (ISO/IEC 15408):
+ * 
+ * | Componente | Nombre | Implementación |
+ * |------------|--------|----------------|
+ * | FIA_SOS.1  | Verification of secrets | validateStrongPassword() |
+ * | FIA_SOS.2  | TSF Generation of secrets | Política de complejidad |
+ * 
+ * ## Estrategia de Validación Multi-Capa:
+ * 
+ * ```
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                    CONTRASEÑA INPUT                         │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │ 1. Longitud mínima (8 caracteres)                          │
+ * │ 2. Complejidad (mayúscula, minúscula, número, especial)    │
+ * │ 3. No contiene username                                     │
+ * │ 4. No contiene prefijo de email                            │
+ * │ 5. No es contraseña común (diccionario)                    │
+ * │ 6. No tiene secuencias numéricas                           │
+ * │ 7. No tiene patrones de teclado                            │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    CONTRASEÑA VÁLIDA                        │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ * 
+ * ## Vectores de Ataque Mitigados:
+ * 
+ * - **Dictionary Attack**: Lista de 26 contraseñas más comunes
+ * - **Brute Force**: Complejidad aumenta espacio de búsqueda
+ * - **Social Engineering**: Username/email no pueden usarse
+ * - **Pattern-based Attack**: Secuencias y patrones de teclado bloqueados
+ * 
+ * @author EduSoft Security Team
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @see NIST SP 800-63B Digital Identity Guidelines
  */
 
-// Diccionario de contraseñas comunes (top 100 más usadas)
+import type { NextFunction, Request, Response } from "express";
+
+// ============================================================================
+// DICCIONARIOS DE CONTRASEÑAS INSEGURAS
+// ============================================================================
+
+/**
+ * Diccionario de contraseñas comunes
+ * 
+ * ## Fuente:
+ * Basado en análisis de brechas de seguridad públicas.
+ * Incluye las contraseñas más frecuentemente usadas.
+ * 
+ * ## Actualización:
+ * Este diccionario debe actualizarse periódicamente con
+ * nuevas contraseñas identificadas en brechas de datos.
+ * 
+ * @implements HU03 - Protección contra ataques de diccionario
+ */
 const COMMON_PASSWORDS = [
   "password",
   "password1",
@@ -41,7 +109,22 @@ const COMMON_PASSWORDS = [
   "Qwerty123!",
 ];
 
-// Patrones de teclado comunes
+/**
+ * Patrones de teclado comunes a detectar
+ * 
+ * ## Patrones Incluidos:
+ * - Filas de teclado QWERTY (qwerty, asdfgh, zxcvbn)
+ * - Combinaciones diagonales (1qaz2wsx)
+ * - Patrones cortos frecuentes (qazwsx)
+ * 
+ * ## Por qué se bloquean:
+ * Los patrones de teclado son fáciles de adivinar porque:
+ * 1. Son predecibles (secuencia espacial)
+ * 2. Aparecen en muchas listas de contraseñas
+ * 3. Son fáciles de recordar pero fáciles de atacar
+ * 
+ * @implements HU03 - Detección de patrones inseguros
+ */
 const KEYBOARD_PATTERNS = [
   "qwerty",
   "asdfgh",
@@ -55,12 +138,47 @@ const KEYBOARD_PATTERNS = [
   "qweasd",
 ];
 
+// ============================================================================
+// FUNCIÓN PRINCIPAL DE VALIDACIÓN
+// ============================================================================
+
 /**
  * Valida que la contraseña cumpla con todos los requisitos de seguridad
- * @param password - Contraseña a validar
- * @param username - Nombre de usuario para validación cruzada
- * @param email - Email para validación cruzada
- * @returns Objeto con isValid y errors array
+ * 
+ * ## Proceso de Validación:
+ * Ejecuta 9 verificaciones en secuencia, acumulando todos los errores
+ * encontrados para feedback completo al usuario.
+ * 
+ * ## Verificaciones Realizadas:
+ * 
+ * | # | Verificación | Mensaje de Error |
+ * |---|--------------|------------------|
+ * | 1 | Longitud ≥ 8 | "Password must be at least 8 characters long" |
+ * | 2 | Mayúscula | "Password must contain at least one uppercase letter" |
+ * | 3 | Minúscula | "Password must contain at least one lowercase letter" |
+ * | 4 | Número | "Password must contain at least one number" |
+ * | 5 | Especial | "Password must contain at least one special character" |
+ * | 6 | No username | "Password cannot contain your username" |
+ * | 7 | No email | "Password cannot contain your email address" |
+ * | 8 | No diccionario | "Password is too common. Please choose a stronger one" |
+ * | 9 | No secuencias | "Password cannot contain sequential numbers" |
+ * | 10 | No teclado | "Password contains a keyboard pattern" |
+ * 
+ * ## Retorno:
+ * - **isValid**: true solo si pasa TODAS las verificaciones
+ * - **errors**: Array con todos los criterios no cumplidos
+ * 
+ * @implements HU03 - Verificación de secretos (FIA_SOS.1)
+ * @param {string} password - Contraseña a validar
+ * @param {string} [username] - Username para validación cruzada
+ * @param {string} [email] - Email para validación cruzada
+ * @returns {{ isValid: boolean, errors: string[] }}
+ * 
+ * @example
+ * const result = validateStrongPassword('MyP@ss123', 'john_doe', 'john@email.com');
+ * if (!result.isValid) {
+ *   return res.status(400).json({ errors: result.errors });
+ * }
  */
 export const validateStrongPassword = (
   password: string,

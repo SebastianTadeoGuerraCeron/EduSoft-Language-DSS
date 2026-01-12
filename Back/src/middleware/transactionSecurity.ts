@@ -1,20 +1,60 @@
 /**
- * HU07 - Middleware de Seguridad para Transacciones de Pago
+ * ============================================================================
+ * HU07 - MIDDLEWARE DE SEGURIDAD PARA TRANSACCIONES DE PAGO
+ * ============================================================================
  * 
- * Implementa:
- * - FDP_UCT.1: Basic data exchange confidentiality
- * - FDP_UIT.1: Data exchange integrity
+ * @module transactionSecurity
+ * @description
+ * Sistema completo de seguridad para transacciones financieras. Implementa
+ * múltiples capas de protección para garantizar confidencialidad e integridad
+ * de datos de pago.
  * 
- * Características:
- * - Verificación de canal cifrado (HTTPS obligatorio)
- * - Headers de seguridad específicos para transacciones
- * - Verificación de integridad mediante HMAC-SHA256
- * - Protección contra ataques MITM, replay y downgrade
- * - Rate limiting específico para endpoints de pago
- * - Logging de eventos de seguridad
+ * ## Historia de Usuario:
+ * 
+ * ### HU07 - Protección de Datos de Pagos
+ * - **Criterio 1**: Transacciones solo por canal cifrado (HTTPS)
+ * - **Criterio 2**: Headers de seguridad específicos para billing
+ * - **Criterio 3**: Verificación de integridad con HMAC-SHA256
+ * - **Criterio 4**: Protección contra replay attacks con nonces
+ * 
+ * ## Mapeo Common Criteria (ISO/IEC 15408):
+ * 
+ * | Componente | Nombre | Implementación |
+ * |------------|--------|----------------|
+ * | FDP_UCT.1  | Basic data exchange confidentiality | verifySecureChannel() |
+ * | FDP_UIT.1  | Data exchange integrity | verifyIntegrity() |
+ * | FPT_ITT.1  | Basic TSF data transfer protection | Security headers |
+ * | FPT_RPL.1  | Replay detection | verifyNonce() |
+ * 
+ * ## Capas de Seguridad Implementadas:
+ * 
+ * ```
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                    REQUEST DE PAGO                          │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │ 1. verifySecureChannel() - Verificar HTTPS                 │
+ * │ 2. addSecurityHeaders()  - Headers anti-XSS, anti-click    │
+ * │ 3. verifyNonce()         - Detectar replay attacks         │
+ * │ 4. verifyIntegrity()     - Verificar HMAC de datos         │
+ * │ 5. transactionRateLimiter - Limitar requests               │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    PROCESAMIENTO SEGURO                     │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ * 
+ * ## Vectores de Ataque Mitigados:
+ * 
+ * - **MITM (Man-in-the-Middle)**: HTTPS obligatorio
+ * - **Replay Attack**: Nonces únicos con expiración de 5 minutos
+ * - **Data Tampering**: HMAC-SHA256 verifica integridad
+ * - **Protocol Downgrade**: Rechazo de conexiones HTTP
+ * - **Click-jacking**: X-Frame-Options: DENY
+ * - **Content Sniffing**: X-Content-Type-Options: nosniff
  * 
  * @author Anthony Alejandro Morales Vargas
- * @version 1.0.0
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @see OWASP Payment Processing Cheat Sheet
  */
 
 import crypto from "crypto";
@@ -31,13 +71,44 @@ import type { AuthRequest } from "./auth";
 // CONSTANTES DE SEGURIDAD
 // ============================================================================
 
-const NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutos para expiración de nonce
-const TIMESTAMP_TOLERANCE_MS = 30 * 1000; // 30 segundos de tolerancia
+/**
+ * Tiempo de vida de un nonce: 5 minutos
+ * 
+ * ## Razonamiento:
+ * - Suficiente para latencia de red normal
+ * - Corto para limitar ventana de replay
+ * - Balance entre usabilidad y seguridad
+ */
+const NONCE_EXPIRY_MS = 5 * 60 * 1000;
 
-// Almacenamiento de nonces usados (en producción usar Redis)
+/**
+ * Tolerancia de timestamp: 30 segundos
+ * 
+ * ## Propósito:
+ * Permitir pequeñas diferencias de reloj entre cliente y servidor
+ * mientras se detectan requests muy antiguos o del futuro.
+ */
+const TIMESTAMP_TOLERANCE_MS = 30 * 1000;
+
+/**
+ * Almacenamiento de nonces usados para detección de replay attacks
+ * 
+ * ## Estructura: Map<nonce, timestamp_de_uso>
+ * 
+ * ## Nota de Producción:
+ * En un entorno distribuido (múltiples instancias), este Map debería
+ * reemplazarse por Redis u otro almacén compartido para garantizar
+ * detección de replays entre todas las instancias.
+ */
 const usedNonces = new Map<string, number>();
 
-// Limpiar nonces expirados cada 5 minutos
+/**
+ * Limpieza periódica de nonces expirados
+ * 
+ * ## Propósito:
+ * Prevenir crecimiento indefinido del Map de nonces.
+ * Los nonces más viejos que NONCE_EXPIRY_MS ya no son útiles.
+ */
 setInterval(() => {
   const now = Date.now();
   for (const [nonce, timestamp] of usedNonces.entries()) {
@@ -48,12 +119,22 @@ setInterval(() => {
 }, NONCE_EXPIRY_MS);
 
 // ============================================================================
-// FUNCIONES DE UTILIDAD
+// FUNCIONES DE GENERACIÓN HMAC
 // ============================================================================
 
 /**
- * Genera una clave HMAC para verificación de integridad
- * Usa una clave separada de la clave de encriptación
+ * Obtiene la clave HMAC para verificación de integridad
+ * 
+ * ## Separación de Claves:
+ * Por seguridad, se puede usar una clave separada (TRANSACTION_HMAC_KEY)
+ * de la clave de cifrado. Si no existe, usa ENCRYPTION_KEY como fallback.
+ * 
+ * ## Formatos Soportados:
+ * - 64 caracteres hex: Se interpreta como 32 bytes binarios
+ * - Otros: Se usa como string UTF-8 directamente
+ * 
+ * @throws {Error} Si ninguna clave está configurada
+ * @returns {Buffer} Clave para HMAC
  */
 const getHmacKey = (): Buffer => {
   const key = process.env.TRANSACTION_HMAC_KEY || process.env.ENCRYPTION_KEY;
@@ -74,8 +155,18 @@ const getHmacKey = (): Buffer => {
 /**
  * Genera un HMAC-SHA256 para verificación de integridad
  * 
- * @param data - Datos a firmar
- * @returns HMAC en formato hexadecimal
+ * ## HMAC (Hash-based Message Authentication Code):
+ * Combina una clave secreta con los datos para producir un código
+ * que verifica tanto integridad como autenticidad.
+ * 
+ * ## Propiedades:
+ * - Solo quien tiene la clave puede generar el HMAC
+ * - Cualquier modificación de datos invalida el HMAC
+ * - Resistente a ataques de extensión de longitud
+ * 
+ * @implements FDP_UIT.1 - Data exchange integrity
+ * @param {string} data - Datos a firmar
+ * @returns {string} HMAC en formato hexadecimal (64 caracteres)
  */
 export const generateHmac = (data: string): string => {
   const key = getHmacKey();
@@ -85,9 +176,20 @@ export const generateHmac = (data: string): string => {
 /**
  * Verifica un HMAC de forma segura (timing-safe)
  * 
- * @param data - Datos originales
- * @param hmac - HMAC a verificar
- * @returns true si el HMAC es válido
+ * ## Seguridad Timing-Safe:
+ * Usa crypto.timingSafeEqual() para prevenir timing attacks.
+ * La comparación toma el mismo tiempo independientemente de
+ * cuántos bytes coincidan, evitando filtrar información.
+ * 
+ * ## Proceso:
+ * 1. Regenera el HMAC esperado con la clave secreta
+ * 2. Compara en tiempo constante con el HMAC recibido
+ * 3. Retorna resultado sin revelar diferencias
+ * 
+ * @implements FDP_UIT.1 - Verificación de integridad
+ * @param {string} data - Datos originales
+ * @param {string} hmac - HMAC recibido a verificar
+ * @returns {boolean} true si el HMAC es válido
  */
 export const verifyHmac = (data: string, hmac: string): boolean => {
   try {
@@ -101,8 +203,24 @@ export const verifyHmac = (data: string, hmac: string): boolean => {
   }
 };
 
+// ============================================================================
+// FUNCIONES DE GENERACIÓN DE IDENTIFICADORES SEGUROS
+// ============================================================================
+
 /**
  * Genera un nonce único para prevenir replay attacks
+ * 
+ * ## Nonce (Number Used Once):
+ * Valor aleatorio que debe ser único por cada request.
+ * Si un atacante reenvía un request, el nonce ya estará usado.
+ * 
+ * ## Características:
+ * - 16 bytes (128 bits) de entropía
+ * - Generado con CSPRNG (crypto.randomBytes)
+ * - Imposible de predecir o colisionar
+ * 
+ * @implements FPT_RPL.1 - Replay detection
+ * @returns {string} Nonce de 32 caracteres hexadecimales
  */
 export const generateNonce = (): string => {
   return crypto.randomBytes(16).toString("hex");
@@ -110,6 +228,16 @@ export const generateNonce = (): string => {
 
 /**
  * Genera un ID de transacción seguro con timestamp
+ * 
+ * ## Formato: STXN-{timestamp_base36}-{random_hex}
+ * 
+ * ## Propiedades:
+ * - **Único**: Combinación de tiempo + aleatorio
+ * - **Ordenable**: Timestamp permite ordenar cronológicamente
+ * - **Trazable**: Prefijo STXN identifica transacciones seguras
+ * - **No predecible**: 12 bytes aleatorios (96 bits de entropía)
+ * 
+ * @returns {string} ID en formato "STXN-XXXXXXX-XXXXXXXXXXXXXXXX"
  */
 export const generateSecureTransactionId = (): string => {
   const timestamp = Date.now().toString(36);
@@ -117,13 +245,22 @@ export const generateSecureTransactionId = (): string => {
   return `STXN-${timestamp}-${random}`.toUpperCase();
 };
 
+// ============================================================================
+// FUNCIONES DE RESPUESTA SEGURA
+// ============================================================================
+
 /**
- * Firma una respuesta de transacción
+ * Firma una respuesta de transacción para verificación en cliente
  * 
- * @param payload - Datos de la respuesta
- * @param transactionId - ID de la transacción
- * @param timestamp - Timestamp de la respuesta
- * @returns Firma HMAC
+ * ## Datos Firmados:
+ * - ID de transacción
+ * - Timestamp de respuesta
+ * - Payload completo (JSON stringified)
+ * 
+ * @param {object} payload - Datos de la respuesta
+ * @param {string} transactionId - ID de la transacción
+ * @param {number} timestamp - Timestamp Unix de la respuesta
+ * @returns {string} Firma HMAC-SHA256
  */
 export const signTransactionResponse = (
   payload: object,
@@ -137,9 +274,28 @@ export const signTransactionResponse = (
 /**
  * Crea una respuesta segura con metadatos de integridad
  * 
- * @param data - Datos de la respuesta
- * @param transactionId - ID de la transacción (opcional)
- * @returns Respuesta con metadatos de seguridad
+ * ## Estructura de Respuesta:
+ * ```json
+ * {
+ *   "data": { ... },           // Payload original
+ *   "_security": {
+ *     "transactionId": "STXN-...",
+ *     "timestamp": 1705123456789,
+ *     "nonce": "abc123...",
+ *     "signature": "hmac...",
+ *     "algorithm": "HMAC-SHA256"
+ *   }
+ * }
+ * ```
+ * 
+ * ## Uso por el Cliente:
+ * El cliente puede verificar la respuesta recalculando el HMAC
+ * con los mismos datos y comparándolo con la firma.
+ * 
+ * @implements FDP_UIT.1 - Integridad de datos en respuestas
+ * @param {T} data - Datos de la respuesta
+ * @param {string} [transactionId] - ID de transacción (se genera si no se proporciona)
+ * @returns {Object} Respuesta envuelta con metadatos de seguridad
  */
 export const createSecureResponse = <T extends object>(
   data: T,

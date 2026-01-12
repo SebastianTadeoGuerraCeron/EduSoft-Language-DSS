@@ -1,12 +1,54 @@
 /**
- * Middleware para verificar acceso a contenido Premium
+ * ============================================================================
+ * HU05 - MIDDLEWARE DE CONTROL DE ACCESO FREEMIUM
+ * ============================================================================
  * 
- * Cumple con:
- * - HU05: Control de Acceso Freemium
- *   - Si Rol == STUDENT_FREE y Recurso == PREMIUM -> Denegar Acceso
- *   - El Tutor debe tener acceso de lectura a ambos tipos de lecciones
+ * @module checkPremiumAccess
+ * @description
+ * Sistema de control de acceso basado en roles para contenido premium.
+ * Implementa el modelo freemium donde usuarios gratuitos tienen acceso
+ * limitado y usuarios premium tienen acceso completo.
  * 
- * Mapeo Common Criteria: FDP_ACC.1 (Subset access control)
+ * ## Historia de Usuario:
+ * 
+ * ### HU05 - Control de Acceso Freemium
+ * 
+ * **Criterios de Aceptación:**
+ * - Si Rol == STUDENT_FREE y Recurso == PREMIUM → Denegar Acceso
+ * - Si Rol == STUDENT_PRO → Permitir Acceso a todo
+ * - TUTOR y ADMIN tienen acceso de lectura a todos los recursos
+ * 
+ * ## Mapeo Common Criteria (ISO/IEC 15408):
+ * 
+ * | Componente | Nombre | Implementación |
+ * |------------|--------|----------------|
+ * | FDP_ACC.1  | Subset access control | checkLessonPremiumAccess() |
+ * | FDP_ACF.1  | Security attribute based access control | Role-based checks |
+ * | FMT_MSA.1  | Management of security attributes | userRole property |
+ * 
+ * ## Matriz de Acceso:
+ * 
+ * | Rol | Contenido FREE | Contenido PREMIUM |
+ * |-----|----------------|-------------------|
+ * | STUDENT_FREE | ✅ Permitido | ❌ Denegado (upgrade required) |
+ * | STUDENT_PRO | ✅ Permitido | ✅ Permitido |
+ * | TUTOR | ✅ Permitido | ✅ Permitido (lectura) |
+ * | ADMIN | ✅ Permitido | ✅ Permitido |
+ * 
+ * ## Flujo de Verificación:
+ * 
+ * ```
+ * Request a recurso → Extraer userRole del JWT →
+ * → Si ADMIN/TUTOR: Permitir →
+ * → Si STUDENT_PRO: Permitir →
+ * → Si STUDENT_FREE: Consultar si recurso es premium →
+ * → Si es premium: 403 + log de acceso denegado
+ * → Si es free: Permitir
+ * ```
+ * 
+ * @author EduSoft Development Team
+ * @version 2.0.0
+ * @since 2024-01-15
  */
 
 import type { Response, NextFunction } from "express";
@@ -20,9 +62,24 @@ import {
 
 const prisma = new PrismaClient();
 
+// ============================================================================
+// MIDDLEWARE GENÉRICO DE VERIFICACIÓN PREMIUM
+// ============================================================================
+
 /**
  * Middleware genérico para verificar acceso premium
- * Usado en rutas que requieren validación de contenido premium
+ * 
+ * ## Comportamiento por Rol:
+ * - **ADMIN**: Acceso inmediato
+ * - **TUTOR**: Acceso inmediato
+ * - **STUDENT_PRO**: Acceso inmediato
+ * - **STUDENT_FREE**: Marca flag para verificación posterior
+ * 
+ * ## Uso:
+ * Se usa como primera capa de verificación. Si el usuario es FREE,
+ * un middleware posterior (checkLessonPremiumAccess) verifica el recurso.
+ * 
+ * @implements HU05 - Control de acceso freemium
  */
 export const checkPremiumAccess = (
   req: AuthRequest,
@@ -49,9 +106,38 @@ export const checkPremiumAccess = (
   next();
 };
 
+// ============================================================================
+// MIDDLEWARE ESPECÍFICO PARA LECCIONES
+// ============================================================================
+
 /**
  * Middleware específico para verificar acceso a una lección premium
- * Debe usarse después de authenticate
+ * 
+ * ## Proceso:
+ * 1. Verificar rol del usuario (fast-path para ADMIN/TUTOR/PRO)
+ * 2. Si es STUDENT_FREE, consultar BD para verificar si lección es premium
+ * 3. Si es premium, denegar con respuesta informativa
+ * 4. Si es free, permitir acceso
+ * 
+ * ## Respuesta de Acceso Denegado (403):
+ * ```json
+ * {
+ *   "error": "Premium content",
+ *   "message": "This lesson requires a premium subscription",
+ *   "lessonTitle": "Advanced Grammar",
+ *   "upgradeRequired": true,
+ *   "code": "PREMIUM_REQUIRED"
+ * }
+ * ```
+ * 
+ * ## Logging:
+ * Cada acceso denegado se registra para análisis de:
+ * - Contenido más demandado
+ * - Posibles intentos de bypass
+ * - Métricas de conversión
+ * 
+ * @implements HU05 - Control de acceso a lecciones (FDP_ACC.1)
+ * @requires authenticate - Debe usarse después de authenticate middleware
  */
 export const checkLessonPremiumAccess = async (
   req: AuthRequest,
@@ -120,9 +206,29 @@ export const checkLessonPremiumAccess = async (
   }
 };
 
+// ============================================================================
+// MIDDLEWARE ESPECÍFICO PARA EXÁMENES
+// ============================================================================
+
 /**
  * Middleware específico para verificar acceso a un examen premium
- * Debe usarse después de authenticate
+ * 
+ * ## Comportamiento:
+ * Idéntico a checkLessonPremiumAccess pero para recursos de tipo Exam.
+ * 
+ * ## Respuesta de Acceso Denegado (403):
+ * ```json
+ * {
+ *   "error": "Premium content",
+ *   "message": "This exam requires a premium subscription",
+ *   "examTitle": "TOEFL Practice Test",
+ *   "upgradeRequired": true,
+ *   "code": "PREMIUM_REQUIRED"
+ * }
+ * ```
+ * 
+ * @implements HU05 - Control de acceso a exámenes (FDP_ACC.1)
+ * @requires authenticate - Debe usarse después de authenticate middleware
  */
 export const checkExamPremiumAccess = async (
   req: AuthRequest,

@@ -49,7 +49,12 @@ export const Profile = () => {
 		const fetchProgress = async () => {
 			if (!user || !user.id) return;
 			try {
-				const res = await fetch(`${API_URL}/user/progress?userId=${user.id}`);
+				const token = localStorage.getItem('token');
+				const res = await fetch(`${API_URL}/user/progress?userId=${user.id}`, {
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				const data = await res.json();
 				setProgress({
 					gamesPlayed: data.gamesPlayed || 0,
@@ -69,7 +74,12 @@ export const Profile = () => {
 		const fetchRanking = async () => {
 			if (!user || !user.id) return;
 			try {
-				const res = await fetch(`${API_URL}/user/ranking?userId=${user.id}`);
+				const token = localStorage.getItem('token');
+				const res = await fetch(`${API_URL}/user/ranking?userId=${user.id}`, {
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				const data = await res.json();
 				setRanking(data.ranking);
 			} catch {

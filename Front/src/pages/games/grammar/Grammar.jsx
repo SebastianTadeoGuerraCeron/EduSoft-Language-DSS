@@ -75,9 +75,13 @@ export const Grammar = () => {
 		setFinished(true);
 
 		if (user && user.id) {
+			const token = localStorage.getItem('token');
 			await fetch(`${API_URL}/user/game-history`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`,
+				},
 				body: JSON.stringify({
 					userId: user.id,
 					game: 'Grammar Challenge',

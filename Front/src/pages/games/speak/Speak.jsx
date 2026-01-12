@@ -853,9 +853,13 @@ export const PronunciationChallenge = () => {
 		// Registrar el puntaje en el backend si hay usuario
 		if (user && user.id) {
 			try {
+				const token = localStorage.getItem('token');
 				await fetch(`${API_URL}/user/game-history`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: { 
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`,
+					},
 					body: JSON.stringify({
 						userId: user.id,
 						game: 'Speaking Challenge',

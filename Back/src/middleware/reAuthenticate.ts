@@ -1,11 +1,56 @@
 /**
- * Middleware de Re-autenticación
+ * ============================================================================
+ * HU06 - MIDDLEWARE DE RE-AUTENTICACIÓN PARA ACCIONES CRÍTICAS
+ * ============================================================================
  * 
- * Cumple con:
- * - HU06: Re-autenticación para Acciones Críticas
- *   - Solicitud de password obligatoria al acceder a /billing
+ * @module reAuthenticate
+ * @description
+ * Implementa verificación adicional de identidad para operaciones sensibles.
+ * Requiere que el usuario confirme su contraseña antes de ejecutar acciones
+ * que afectan datos financieros o configuración crítica de cuenta.
  * 
- * Mapeo Common Criteria: FIA_UAU.6 (Re-authenticating)
+ * ## Historia de Usuario:
+ * 
+ * ### HU06 - Re-autenticación para Acciones Críticas
+ * 
+ * **Criterio de Aceptación:**
+ * - Solicitar password obligatoriamente al acceder a /billing
+ * - Verificar identidad antes de operaciones de pago
+ * - Prevenir uso no autorizado de sesiones activas
+ * 
+ * ## Mapeo Common Criteria (ISO/IEC 15408):
+ * 
+ * | Componente | Nombre | Implementación |
+ * |------------|--------|----------------|
+ * | FIA_UAU.6  | Re-authenticating | requireReAuthentication() |
+ * | FTA_SSL.2  | User-initiated locking | Sesión requiere reconfirmación |
+ * 
+ * ## Flujo de Re-autenticación:
+ * 
+ * ```
+ * Usuario autenticado → Accede a /billing → 
+ * → Middleware solicita header X-Reauth-Password →
+ * → Verifica contraseña con hash en BD →
+ * → Si válida: req.reAuthenticated = true, continúa
+ * → Si inválida: 401 + log de seguridad
+ * ```
+ * 
+ * ## Casos de Uso:
+ * 
+ * 1. **Agregar método de pago**: Confirmar identidad antes de guardar tarjeta
+ * 2. **Suscribirse a plan**: Verificar antes de cobrar
+ * 3. **Cancelar suscripción**: Prevenir cancelaciones accidentales
+ * 4. **Eliminar cuenta**: Última verificación de consentimiento
+ * 
+ * ## Vectores de Ataque Mitigados:
+ * 
+ * - **Session Hijacking**: Token robado no basta, necesita password
+ * - **CSRF con sesión activa**: Atacante no conoce password
+ * - **Shoulder Surfing**: Password no está visible en UI
+ * 
+ * @author EduSoft Security Team
+ * @version 2.0.0
+ * @since 2024-01-15
  */
 
 import type { Response, NextFunction } from "express";
@@ -20,9 +65,31 @@ import {
 
 const prisma = new PrismaClient();
 
+// ============================================================================
+// MIDDLEWARE DE RE-AUTENTICACIÓN OBLIGATORIA
+// ============================================================================
+
 /**
  * Middleware que requiere re-autenticación para acciones críticas
- * El cliente debe enviar el header X-Reauth-Password con la contraseña actual
+ * 
+ * ## Uso del Header:
+ * El cliente debe enviar: `X-Reauth-Password: <contraseña_actual>`
+ * 
+ * ## Respuestas:
+ * - **200**: Re-autenticación exitosa, continúa al siguiente middleware
+ * - **401 AUTH_REQUIRED**: Usuario no autenticado (sin JWT)
+ * - **401 REAUTH_REQUIRED**: Falta header X-Reauth-Password
+ * - **401 REAUTH_FAILED**: Contraseña incorrecta
+ * - **401 USER_NOT_FOUND**: Usuario no existe en BD
+ * 
+ * ## Logging de Seguridad:
+ * - Intento fallido: Registrado con severidad MEDIUM
+ * - Éxito: Registrado con severidad LOW
+ * 
+ * @implements HU06 - Re-autenticación (FIA_UAU.6)
+ * @param {AuthRequest} req - Request con userId del JWT
+ * @param {Response} res - Response de Express
+ * @param {NextFunction} next - Continuar si re-auth exitosa
  */
 export const requireReAuthentication = async (
   req: AuthRequest,
@@ -109,10 +176,31 @@ export const requireReAuthentication = async (
   }
 };
 
+// ============================================================================
+// MIDDLEWARE DE RE-AUTENTICACIÓN OPCIONAL
+// ============================================================================
+
 /**
  * Middleware opcional de re-autenticación
- * Si se proporciona la contraseña, la verifica. Si no, continúa sin verificar.
- * Útil para endpoints que pueden requerir re-auth condicionalmente
+ * 
+ * ## Comportamiento:
+ * - Si se proporciona X-Reauth-Password: verifica y establece flag
+ * - Si no se proporciona: continúa sin verificar (req.reAuthenticated = false)
+ * 
+ * ## Uso:
+ * Endpoints que pueden requerir re-auth condicionalmente.
+ * Ejemplo: Ver billing es opcional, pero modificar requiere re-auth.
+ * 
+ * ## Ejemplo en Controlador:
+ * ```typescript
+ * if (req.body.action === 'modify' && !req.reAuthenticated) {
+ *   return res.status(401).json({ code: 'REAUTH_REQUIRED' });
+ * }
+ * ```
+ * 
+ * @param {AuthRequest} req - Request con userId del JWT
+ * @param {Response} res - Response de Express
+ * @param {NextFunction} next - Siempre continúa (es opcional)
  */
 export const optionalReAuthentication = async (
   req: AuthRequest,

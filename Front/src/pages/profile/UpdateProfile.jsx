@@ -102,8 +102,14 @@ export const UpdateProfile = () => {
 				const formData = new FormData();
 				formData.append('profilePicture', selectedFile);
 
+				// Obtener token del localStorage para autenticación
+				const token = localStorage.getItem('token');
+
 				const uploadRes = await fetch(`${API_URL}/user/upload-profile-picture`, {
 					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
 					body: formData,
 				});
 				const uploadData = await uploadRes.json();
@@ -116,9 +122,15 @@ export const UpdateProfile = () => {
 				}
 			}
 
+			// Obtener token del localStorage para autenticación
+			const token = localStorage.getItem('token');
+
 			const res = await fetch(`${API_URL}/user/update-profile`, {
 				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`,
+				},
 				body: JSON.stringify({
 					email: form.email,
 					username: form.username,
