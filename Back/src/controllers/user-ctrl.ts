@@ -363,11 +363,16 @@ const updateProfileCtrl = async (req: Request, res: Response) => {
     }
 
     if (newPassword) {
-      // Validar fortaleza de la nueva contraseña
-      if (!isStrongPassword(newPassword)) {
+      // Validar fortaleza de la nueva contraseña con username y email
+      if (!isStrongPassword(newPassword, user.username, user.email)) {
+        // Importar validateStrongPassword para obtener errores específicos
+        const { validateStrongPassword } = await import("../middleware/passwordValidation");
+        const validation = validateStrongPassword(newPassword, user.username, user.email);
         res.status(400).json({
-          error:
-            "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers",
+          error: validation.errors.length > 0 
+            ? validation.errors[0] 
+            : "Password does not meet security requirements",
+          errors: validation.errors,
         });
         return;
       }
