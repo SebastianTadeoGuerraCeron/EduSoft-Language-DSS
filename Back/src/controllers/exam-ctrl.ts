@@ -123,6 +123,7 @@ export const createExamCtrl = async (req: AuthRequest, res: Response) => {
       error: "Internal server error",
       details: (error as any).message,
     });
+    return;
   }
 };
 
@@ -224,6 +225,7 @@ export const updateExamCtrl = async (req: AuthRequest, res: Response) => {
       error: "Internal server error",
       details: (error as any).message,
     });
+    return;
   }
 };
 
@@ -408,6 +410,7 @@ export const getAllExamsCtrl = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error fetching exams:", error);
     res.status(500).json({ error: "Internal server error" });
+    return;
   }
 };
 
@@ -710,8 +713,7 @@ export const submitExamCtrl = async (req: AuthRequest, res: Response) => {
     });
   } catch (error) {
     console.error("Error submitting exam:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    res.status(500).json({ error: "Internal server error" });    return;  }
 };
 
 /**
@@ -919,6 +921,7 @@ export const deleteExamCtrl = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error deleting exam:", error);
     res.status(500).json({ error: "Internal server error" });
+    return;
   }
 };
 

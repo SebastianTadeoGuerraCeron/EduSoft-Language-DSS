@@ -199,7 +199,7 @@ describe("user-ctrl", () => {
       });
     });
 
-    it("should return 409 when email already exists", async () => {
+    it("should return 409 when email is already registered", async () => {
       mockReq.body = {
         email: "existing@example.com",
         username: "testuser",
@@ -213,7 +213,7 @@ describe("user-ctrl", () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(409);
       expect(mockRes.json).toHaveBeenCalledWith({
-        error: "Email already exists",
+        error: "This email is already registered. Please use a different email or try logging in.",
       });
     });
 

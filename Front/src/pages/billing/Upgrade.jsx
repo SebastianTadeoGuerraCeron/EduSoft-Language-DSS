@@ -52,15 +52,10 @@ const Upgrade = () => {
             setPlans(plansData.plans || []);
 
             // Verificar si hay tarjeta guardada
-            try {
-                const cardInfo = await getPaymentMethod();
-                if (cardInfo.paymentMethod) {
-                    setSavedCard(cardInfo.paymentMethod);
-                    setUseSavedCard(true);
-                }
-            } catch (err) {
-                // No hay tarjeta guardada - OK
-                console.log('No saved card found');
+            const cardInfo = await getPaymentMethod();
+            if (cardInfo.paymentMethod) {
+                setSavedCard(cardInfo.paymentMethod);
+                setUseSavedCard(true);
             }
         } catch (err) {
             console.error('Error loading data:', err);
@@ -135,8 +130,15 @@ const Upgrade = () => {
 
             // OPCIÓN 1: Usar tarjeta guardada (datos encriptados en nuestra BD)
             if (useSavedCard && savedCard) {
+                // Validar que se haya ingresado el CVV
+                if (!cardData.cvv || cardData.cvv.length < 3 || cardData.cvv.length > 4) {
+                    setError('Please enter the CVV for your saved card');
+                    setProcessing(false);
+                    return;
+                }
+
                 try {
-                    const data = await subscribeWithSavedCard(selectedPlan);
+                    const data = await subscribeWithSavedCard(selectedPlan, cardData.cvv);
 
                     if (data.success) {
                         setSuccessMessage('Subscription created successfully! Your account has been updated to Premium.');
@@ -323,6 +325,32 @@ const Upgrade = () => {
                                 ({savedCard.cardholderName})
                             </span>
                         </div>
+                        
+                        {/* CVV Required for saved card */}
+                        {useSavedCard && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <label htmlFor="savedCardCvv" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#166534' }}>
+                                    CVV (required for security)
+                                </label>
+                                <input
+                                    type="text"
+                                    id="savedCardCvv"
+                                    name="cvv"
+                                    value={cardData.cvv}
+                                    onChange={handleInputChange}
+                                    placeholder="123"
+                                    maxLength="4"
+                                    autoComplete="cc-csc"
+                                    style={{
+                                        width: '100px',
+                                        padding: '0.5rem',
+                                        border: '1px solid #22c55e',
+                                        borderRadius: '4px',
+                                        fontSize: '1rem'
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
 

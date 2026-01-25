@@ -191,15 +191,20 @@ export const isPremiumUser = (user) => {
  * @param {string} plan - 'MONTHLY' o 'YEARLY'
  * @param {string} cardId - ID de la tarjeta a usar (opcional, usa la default si no se especifica)
  */
-export const subscribeWithSavedCard = async (plan, cardId = null) => {
+export const subscribeWithSavedCard = async (plan, cvv, cardId = null) => {
     warnIfInsecure();
     
-    const securityHeaders = prepareSecurityHeaders({ plan, cardId });
+    if (!cvv || cvv.length < 3 || cvv.length > 4) {
+        throw new Error('CVV is required and must be 3 or 4 digits');
+    }
+    
+    const securityHeaders = prepareSecurityHeaders({ plan, cardId, cvv });
     
     const response = await api.post('/billing/subscribe-with-saved-card', 
-        { plan, cardId },
+        { plan, cardId, cvv },
         { headers: securityHeaders }
     );
+    
     return verifyBillingResponse(response);
 };
 

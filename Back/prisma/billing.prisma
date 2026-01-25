@@ -24,7 +24,7 @@ model BillingInfo {
   
   // Datos encriptados con AES-256-GCM
   encryptedCardNumber   String   // Número de tarjeta encriptado
-  encryptedCVV          String   // CVV encriptado (solo para procesamiento inmediato)
+  // NOTA: CVV NUNCA se almacena (PCI-DSS compliance)
   encryptedExpiry       String   // Fecha de expiración encriptada (MM/YY)
   cardholderName        String   // Nombre del titular
   
@@ -32,9 +32,11 @@ model BillingInfo {
   lastFourDigits        String   // Últimos 4 dígitos para mostrar ****-****-****-4242
   cardBrand             String   // VISA, MASTERCARD, AMEX, etc.
   
-  // Datos de encriptación (necesarios para descifrar)
-  iv                    String   // Vector de inicialización único (base64)
-  authTag               String   // Tag de autenticación GCM (base64) - HU07 Integridad
+  // Datos de encriptación separados por campo (AES-256-GCM)
+  ivCardNumber          String   // IV para número de tarjeta (base64)
+  authTagCardNumber     String   // AuthTag para número de tarjeta (base64)
+  ivExpiry              String   // IV para fecha de expiración (base64)
+  authTagExpiry         String   // AuthTag para fecha de expiración (base64)
   
   // Hash de integridad para verificar que los datos no fueron manipulados
   integrityHash         String   // SHA-256 de todos los campos encriptados

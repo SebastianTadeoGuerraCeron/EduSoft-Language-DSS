@@ -240,6 +240,7 @@ export const createCheckoutCtrl = async (req: AuthRequest, res: Response) => {
       error: "Failed to create checkout session",
       details: (error as Error).message,
     });
+    return;
   }
 };
 
@@ -310,6 +311,7 @@ export const webhookCtrl = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Webhook error:", error);
     res.status(500).json({ error: "Webhook processing failed" });
+    return;
   }
 };
 
@@ -496,6 +498,7 @@ export const cancelSubscriptionCtrl = async (req: AuthRequest, res: Response) =>
   } catch (error) {
     console.error("[cancelSubscriptionCtrl] Error canceling subscription:", error);
     res.status(500).json({ error: "Failed to cancel subscription" });
+    return;
   }
 };
 
@@ -562,6 +565,7 @@ export const reactivateSubscriptionCtrl = async (req: AuthRequest, res: Response
   } catch (error) {
     console.error("[reactivateSubscriptionCtrl] Error reactivating subscription:", error);
     res.status(500).json({ error: "Failed to reactivate subscription" });
+    return;
   }
 };
 
@@ -597,6 +601,7 @@ export const getPaymentHistoryCtrl = async (req: AuthRequest, res: Response) => 
   } catch (error) {
     console.error("Error fetching payment history:", error);
     res.status(500).json({ error: "Failed to fetch payment history" });
+    return;
   }
 };
 
@@ -692,6 +697,7 @@ export const getSubscriptionStatusCtrl = async (req: AuthRequest, res: Response)
   } catch (error) {
     console.error("Error fetching subscription status:", error);
     res.status(500).json({ error: "Failed to fetch subscription status" });
+    return;
   }
 };
 
@@ -754,6 +760,7 @@ export const updatePaymentMethodCtrl = async (req: AuthRequest, res: Response) =
   } catch (error) {
     console.error("Error updating payment method:", error);
     res.status(500).json({ error: "Failed to update payment method" });
+    return;
   }
 };
 
@@ -767,7 +774,7 @@ export const updatePaymentMethodCtrl = async (req: AuthRequest, res: Response) =
 export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
-    const { plan } = req.body;
+    const { plan, cvv } = req.body; // CVV DEBE ser proporcionado de nuevo
 
     if (!userId) {
       res.status(401).json({ error: "Unauthorized" });
@@ -777,6 +784,12 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
     // Validar plan
     if (!plan || !["MONTHLY", "YEARLY"].includes(plan)) {
       res.status(400).json({ error: "Invalid plan. Must be MONTHLY or YEARLY" });
+      return;
+    }
+
+    // Validar CVV
+    if (!cvv || !/^\d{3,4}$/.test(cvv)) {
+      res.status(400).json({ error: "CVV is required and must be 3 or 4 digits" });
       return;
     }
 
@@ -794,11 +807,6 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
     // Validar que sea estudiante
     if (!["STUDENT_FREE", "STUDENT_PRO"].includes(user.role)) {
       res.status(403).json({ error: "Only students can subscribe to premium plans" });
-      return;
-    }
-
-    if (!user) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -825,46 +833,56 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
       res.status(404).json({ error: "No saved card found. Please add a payment method first." });
       return;
     }
+    console.log('[subscribeWithSavedCardCtrl] Saved card found:', { id: billingInfo.id, lastFour: billingInfo.lastFourDigits });
 
     // Verificar que hay datos encriptados completos
-    // Las tarjetas guardadas desde Stripe Checkout no tienen el número completo encriptado
     if (!billingInfo.encryptedCardNumber || 
-        !billingInfo.encryptedCVV || 
         !billingInfo.encryptedExpiry ||
-        !billingInfo.iv || 
-        !billingInfo.authTag ||
-        billingInfo.encryptedCardNumber === '' ||
-        billingInfo.iv === '' ||
-        billingInfo.authTag === '') {
+        !billingInfo.ivCardNumber || 
+        !billingInfo.ivExpiry ||
+        !billingInfo.authTagCardNumber ||
+        !billingInfo.authTagExpiry) {
       res.status(400).json({ 
         error: "This card cannot be used for automatic payments. Please enter your card details again to create a new subscription." 
       });
       return;
     }
 
-    // Desencriptar los datos de la tarjeta
+    // Desencriptar los datos de la tarjeta (EXCEPTO CVV que nunca se guarda)
     let decryptedCard;
     try {
       decryptedCard = decryptCardData({
         encryptedCardNumber: billingInfo.encryptedCardNumber,
-        encryptedCVV: billingInfo.encryptedCVV,
         encryptedExpiry: billingInfo.encryptedExpiry,
-        iv: billingInfo.iv,
-        authTag: billingInfo.authTag,
+        ivCardNumber: billingInfo.ivCardNumber,
+        ivExpiry: billingInfo.ivExpiry,
+        authTagCardNumber: billingInfo.authTagCardNumber,
+        authTagExpiry: billingInfo.authTagExpiry,
         integrityHash: billingInfo.integrityHash,
+        lastFourDigits: billingInfo.lastFourDigits,
       });
     } catch (decryptError) {
       console.error("Error decrypting card data:", decryptError);
+      
+      // Eliminar tarjeta corrupta automáticamente
+      try {
+        await billingPrisma.billingInfo.delete({
+          where: { id: billingInfo.id }
+        });
+      } catch (deleteError) {
+        console.error("Error deleting corrupted card:", deleteError);
+      }
+      
       res.status(400).json({ 
-        error: "Unable to decrypt saved card data. Please enter your card details again." 
+        error: "Unable to decrypt saved card data. The corrupted card has been removed. Please enter your card details again." 
       });
       return;
     }
 
-    // Crear PaymentMethod en Stripe con los datos desencriptados
+    // Crear PaymentMethod en Stripe con los datos desencriptados + CVV proporcionado
     const paymentMethod = await stripeService.createPaymentMethodFromCard({
       cardNumber: decryptedCard.cardNumber,
-      cvv: decryptedCard.cvv,
+      cvv: cvv, // CVV proporcionado por el usuario AHORA
       expiry: decryptedCard.expiry,
       cardholderName: billingInfo.cardholderName,
     });
@@ -964,6 +982,7 @@ export const subscribeWithSavedCardCtrl = async (req: AuthRequest, res: Response
     }
     
     res.status(500).json({ error: "Failed to create subscription" });
+    return;
   }
 };
 
@@ -1004,6 +1023,7 @@ export const getPaymentMethodsCtrl = async (req: AuthRequest, res: Response) => 
   } catch (error) {
     console.error("Error fetching payment methods:", error);
     res.status(500).json({ error: "Failed to fetch payment methods" });
+    return;
   }
 };
 
@@ -1041,8 +1061,9 @@ export const getPaymentMethodCtrl = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    // Retornar 200 con null si no hay tarjeta guardada (no es un error)
     if (!billingInfo) {
-      res.status(404).json({ error: "No payment method found" });
+      res.json({ paymentMethod: null });
       return;
     }
 
@@ -1050,6 +1071,7 @@ export const getPaymentMethodCtrl = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error fetching payment method:", error);
     res.status(500).json({ error: "Failed to fetch payment method" });
+    return;
   }
 };
 
@@ -1155,6 +1177,7 @@ export const addPaymentMethodCtrl = async (req: AuthRequest, res: Response) => {
       return;
     }
     res.status(500).json({ error: "Failed to add payment method" });
+    return;
   }
 };
 
@@ -1220,6 +1243,7 @@ export const setDefaultPaymentMethodCtrl = async (req: AuthRequest, res: Respons
   } catch (error) {
     console.error("Error setting default payment method:", error);
     res.status(500).json({ error: "Failed to update default payment method" });
+    return;
   }
 };
 
@@ -1294,6 +1318,7 @@ export const deletePaymentMethodCtrl = async (req: AuthRequest, res: Response) =
   } catch (error) {
     console.error("Error deleting payment method:", error);
     res.status(500).json({ error: "Failed to remove payment method" });
+    return;
   }
 };
 
@@ -1335,6 +1360,7 @@ export const getPlansCtrl = async (_req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error fetching plans:", error);
     res.status(500).json({ error: "Failed to fetch plans" });
+    return;
   }
 };
 

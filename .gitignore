@@ -74,3 +74,5 @@ test-hu07-security.js
 
 .scannerwork
 .sonarlint
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

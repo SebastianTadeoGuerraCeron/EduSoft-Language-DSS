@@ -311,6 +311,17 @@ export const deleteLessonCtrl = async (req: AuthRequest, res: Response) => {
     }
 
     await prisma.lesson.delete({ where: { id } });
+    
+    // Log de eliminación de lección
+    await logAdminAction(req, {
+      adminId: userId,
+      action: "DELETE_LESSON",
+      targetResource: id,
+      resourceType: ResourceType.LESSON,
+      oldValue: { title: lesson.title, isPremium: lesson.isPremium },
+      success: true,
+    });
+
     res.json({ message: "Lesson deleted successfully" });
   } catch (error) {
     console.error("Error deleting lesson:", error);

@@ -117,13 +117,14 @@ const createUserCtrl = async (req: Request, res: Response) => {
     console.error("Error creating user:", error);
     
     if (error.code === "P2002") {
-      await logRegistrationFailed(email, ipAddress, "Email already exists");
-      res.status(409).json({ error: "Email already exists" });
+      await logRegistrationFailed(email, ipAddress, "Email is already registered");
+      res.status(409).json({ error: "This email is already registered. Please use a different email or try logging in." });
       return;
     }
     
     await logRegistrationFailed(email, ipAddress, "Internal server error");
     res.status(500).json({ error: "Internal server error" });
+    return;
   }
 };
 
@@ -277,6 +278,7 @@ const loginUserCtrl = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ error: "Internal server error" });
+    return;
   }
 };
 
@@ -550,8 +552,7 @@ const getMeCtrl = async (req: AuthRequest, res: Response) => {
     res.json({ user });
   } catch (error) {
     console.error("Error getting user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    res.status(500).json({ error: "Internal server error" });    return;  }
 };
 
 /**

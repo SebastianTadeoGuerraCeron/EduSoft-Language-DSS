@@ -166,14 +166,14 @@ describe("Security Logger", () => {
       await logRegistrationFailed(
         "fail@test.com",
         "192.168.0.1",
-        "Email already exists"
+        "Email is already registered"
       );
 
       expect(consoleSpy).toHaveBeenCalledWith(
         "[SECURITY] registration_failed",
         expect.objectContaining({
           email: "fail@test.com",
-          details: { reason: "Email already exists" },
+          details: { reason: "Email is already registered" },
         })
       );
     });

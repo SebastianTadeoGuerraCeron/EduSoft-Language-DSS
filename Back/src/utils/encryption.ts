@@ -376,23 +376,25 @@ export const encryptCardData = (cardData: {
   const iv = generateIV();
   const key = getEncryptionKey();
   
-  // Función helper para encriptar con el mismo IV
-  const encryptWithIV = (plaintext: string): { encrypted: string; authTag: string } => {
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv, {
-      authTagLength: AUTH_TAG_LENGTH,
-    });
-    let encrypted = cipher.update(plaintext, "utf8", "base64");
-    encrypted += cipher.final("base64");
-    return {
-      encrypted,
-      authTag: cipher.getAuthTag().toString("base64"),
-    };
-  };
+  // Generar IVs separados para cada campo (mejor práctica de seguridad)
+  const ivCard = crypto.randomBytes(12);
+  const ivExpiry = crypto.randomBytes(12);
   
-  // Encriptar cada campo sensible
-  const encryptedCard = encryptWithIV(cardData.cardNumber);
-  const encryptedCVV = encryptWithIV(cardData.cvv);
-  const encryptedExpiry = encryptWithIV(cardData.expiry);
+  // Cifrar número de tarjeta
+  const cipherCard = crypto.createCipheriv(ALGORITHM, key, ivCard, {
+    authTagLength: AUTH_TAG_LENGTH,
+  });
+  let encryptedCardNumber = cipherCard.update(cardData.cardNumber, "utf8", "base64");
+  encryptedCardNumber += cipherCard.final("base64");
+  const authTagCard = cipherCard.getAuthTag().toString("base64");
+  
+  // Cifrar fecha de expiración
+  const cipherExpiry = crypto.createCipheriv(ALGORITHM, key, ivExpiry, {
+    authTagLength: AUTH_TAG_LENGTH,
+  });
+  let encryptedExpiry = cipherExpiry.update(cardData.expiry, "utf8", "base64");
+  encryptedExpiry += cipherExpiry.final("base64");
+  const authTagExpiry = cipherExpiry.getAuthTag().toString("base64");
   
   // Detectar marca de la tarjeta
   const cardBrand = detectCardBrand(cardData.cardNumber);
@@ -400,19 +402,23 @@ export const encryptCardData = (cardData: {
   // Últimos 4 dígitos (para mostrar al usuario)
   const lastFourDigits = cardData.cardNumber.slice(-4);
   
-  // Generar hash de integridad de todos los datos encriptados
-  const dataToHash = `${encryptedCard.encrypted}|${encryptedCVV.encrypted}|${encryptedExpiry.encrypted}`;
+  // CVV NO se cifra ni almacena (PCI-DSS compliance)
+  // Solo se usa para la transacción inmediata y se descarta
+  
+  // Generar hash de integridad de los datos cifrados (SIN incluir CVV)
+  const dataToHash = `${encryptedCardNumber}|${encryptedExpiry}|${lastFourDigits}`;
   const integrityHash = generateIntegrityHash(dataToHash);
   
   return {
-    encryptedCardNumber: encryptedCard.encrypted,
-    encryptedCVV: encryptedCVV.encrypted,
-    encryptedExpiry: encryptedExpiry.encrypted,
+    encryptedCardNumber,
+    encryptedExpiry,
     cardholderName: cardData.cardholderName,
     lastFourDigits,
     cardBrand,
-    iv: iv.toString("base64"),
-    authTag: encryptedCard.authTag, // Usamos el authTag del número de tarjeta como principal
+    ivCardNumber: ivCard.toString("base64"),
+    authTagCardNumber: authTagCard,
+    ivExpiry: ivExpiry.toString("base64"),
+    authTagExpiry: authTagExpiry,
     integrityHash,
   };
 };
@@ -445,28 +451,43 @@ export const encryptCardData = (cardData: {
  */
 export const decryptCardData = (encryptedData: {
   encryptedCardNumber: string;
-  encryptedCVV: string;
   encryptedExpiry: string;
-  iv: string;
-  authTag: string;
+  ivCardNumber: string;
+  authTagCardNumber: string;
+  ivExpiry: string;
+  authTagExpiry: string;
   integrityHash: string;
+  lastFourDigits: string;
 }): {
   cardNumber: string;
-  cvv: string;
   expiry: string;
 } => {
-  // Verificar integridad antes de desencriptar
-  const dataToHash = `${encryptedData.encryptedCardNumber}|${encryptedData.encryptedCVV}|${encryptedData.encryptedExpiry}`;
+  // Verificar integridad antes de desencriptar (SIN CVV)
+  const dataToHash = `${encryptedData.encryptedCardNumber}|${encryptedData.encryptedExpiry}|${encryptedData.lastFourDigits}`;
   
   if (!verifyIntegrityHash(dataToHash, encryptedData.integrityHash)) {
     throw new Error("Data integrity verification failed - data may have been tampered");
   }
   
-  // Desencriptar cada campo
+  // Descifrar cada campo con su propio IV y authTag
+  const cardNumber = decrypt(
+    encryptedData.encryptedCardNumber,
+    encryptedData.ivCardNumber,
+    encryptedData.authTagCardNumber
+  );
+  
+  const expiry = decrypt(
+    encryptedData.encryptedExpiry,
+    encryptedData.ivExpiry,
+    encryptedData.authTagExpiry
+  );
+  
+  // CVV NUNCA se descifra porque NUNCA se almacena (PCI-DSS)
+  // El CVV debe solicitarse nuevamente en cada transacción
+  
   return {
-    cardNumber: decrypt(encryptedData.encryptedCardNumber, encryptedData.iv, encryptedData.authTag),
-    cvv: decrypt(encryptedData.encryptedCVV, encryptedData.iv, encryptedData.authTag),
-    expiry: decrypt(encryptedData.encryptedExpiry, encryptedData.iv, encryptedData.authTag),
+    cardNumber,
+    expiry,
   };
 };
 
