@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { createLesson } from "../services/lessonService";
 import axios from "axios";
+import { API_URL } from "../API";
 import "../styles/LessonCreation.css";
 
 export default function LessonCreation() {
@@ -192,7 +193,7 @@ export default function LessonCreation() {
             formDataFile.append("file", file);
 
             await axios.post(
-              `http://localhost:3000/lessons/${lessonId}/upload-file`,
+              `${API_URL}/lessons/${lessonId}/upload-file`,
               formDataFile,
               {
                 headers: {

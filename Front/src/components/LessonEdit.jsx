@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { API_URL } from "../API";
 import "../styles/LessonEdit.css";
 
 /**
@@ -105,7 +106,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
 
       // Enviar actualización al backend
       const response = await axios.put(
-        `http://localhost:3000/lessons/${lessonId}`,
+        `${API_URL}/lessons/${lessonId}`,
         {
           modules: editingModules,
         },
