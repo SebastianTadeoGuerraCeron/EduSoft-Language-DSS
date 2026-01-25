@@ -1,23 +1,24 @@
+import crypto from "crypto";
 import express from "express";
 import multer from "multer";
-import crypto from "crypto";
 import {
-  createUserCtrl,
-  deleteUserAccountCtrl,
-  loginUserCtrl,
-  recoverPasswordCtrl,
-  updateProfileCtrl,
-  addGameHistory,
-  getUserProgress,
-  getUserRanking,
-  sendEmailCtrl,
-  getMeCtrl,
-} from "../controllers/user-ctrl";
-import {
-  getAllUsersCtrl,
-  updateUserRoleCtrl,
-  getSystemStatsCtrl,
+    getAllUsersCtrl,
+    getSystemStatsCtrl,
+    updateUserRoleCtrl,
 } from "../controllers/admin-ctrl";
+import {
+    addGameHistory,
+    createUserCtrl,
+    deleteUserAccountCtrl,
+    getMeCtrl,
+    getUserProgress,
+    getUserRanking,
+    loginUserCtrl,
+    logoutUserCtrl,
+    recoverPasswordCtrl,
+    sendEmailCtrl,
+    updateProfileCtrl,
+} from "../controllers/user-ctrl";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
 import {
@@ -66,6 +67,10 @@ const upload = multer({
 routerUser.post("/create", registrationLimiter, createUserCtrl as express.RequestHandler);
 // @ts-ignore - Conflicto de tipos entre express v5 y express-rate-limit
 routerUser.post("/login", loginLimiter, loginUserCtrl as express.RequestHandler);
+
+// Logout - Limpiar cookie httpOnly
+routerUser.post("/logout", logoutUserCtrl as express.RequestHandler);
+
 // @ts-ignore - Conflicto de tipos entre express v5 y express-rate-limit
 routerUser.post(
   "/recover-password",

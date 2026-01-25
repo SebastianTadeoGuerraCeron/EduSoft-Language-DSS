@@ -8,15 +8,12 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
-// Interceptor de requests: Agregar token JWT a todas las peticiones
+// Interceptor de requests: Headers adicionales si es necesario
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {
@@ -40,12 +37,8 @@ api.interceptors.response.use(
         errorMessage === "Invalid token" ||
         errorMessage === "No token provided"
       ) {
-        // Limpiar datos de autenticación
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        // Marcar sesión como expirada y redirigir
         localStorage.setItem("sessionExpired", "true");
-
-        // Redirigir al login
         window.location.href = "#/login";
       }
     }

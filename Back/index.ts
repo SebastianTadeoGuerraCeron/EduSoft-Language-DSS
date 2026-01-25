@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -109,6 +110,9 @@ app.use("/billing/webhook", express.raw({ type: "application/json" }));
 
 // Parsear JSON para todas las demás rutas
 app.use(express.json());
+
+// Parsear cookies
+app.use(cookieParser());
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("EduSoft API - Secure Backend");

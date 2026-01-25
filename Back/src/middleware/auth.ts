@@ -39,7 +39,7 @@
  * @since 2024-01-15
  */
 
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 // ============================================================================
@@ -104,15 +104,20 @@ export const authenticate = (
   next: NextFunction
 ): void => {
   try {
-    // Obtener el token del header Authorization
+    // Obtener el token del header Authorization o de las cookies
+    let token: string | undefined;
+    
     const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
+    }
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       res.status(401).json({ error: "No token provided" });
       return;
     }
-
-    const token = authHeader.split(" ")[1];
 
     // Verificar el token
     const jwtSecret = process.env.JWT_SECRET;
