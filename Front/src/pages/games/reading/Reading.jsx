@@ -8,7 +8,6 @@ import { getRandomElements, shuffleArray } from '../../../utils/gameRandomizatio
 
 // Selecciona 5 lecturas aleatorias usando utility function documentada
 const passages = getRandomElements(SENTENCES_STACK_FOR_READING, 5);
-console.log(passages); // TODO: eliminar en producción
 
 export const Reading = () => {
 	const total = passages.length;
