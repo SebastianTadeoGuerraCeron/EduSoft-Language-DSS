@@ -1570,12 +1570,13 @@ async function handleCheckoutCompleted(session: any): Promise<void> {
                 lastFourDigits: card.last4,
                 cardBrand: card.brand.toUpperCase(),
                 cardholderName: customer.name || '',
-                encryptedCardNumber: '', // No guardamos el número completo desde Stripe
-                encryptedCVV: '',       // CVV nunca se almacena
+                encryptedCardNumber: '',  // No guardamos el número completo desde Stripe
                 encryptedExpiry: `${card.exp_month.toString().padStart(2, '0')}/${card.exp_year.toString().slice(-2)}`,
-                iv: '',                 // No aplicable para datos de Stripe
-                authTag: '',            // No aplicable para datos de Stripe  
-                integrityHash: '',      // No aplicable para datos de Stripe
+                ivCardNumber: '',         // No aplicable para datos de Stripe
+                authTagCardNumber: '',    // No aplicable para datos de Stripe
+                ivExpiry: '',             // No aplicable para datos de Stripe
+                authTagExpiry: '',        // No aplicable para datos de Stripe
+                integrityHash: '',        // No aplicable para datos de Stripe
                 isDefault: true,
                 isActive: true,
               },

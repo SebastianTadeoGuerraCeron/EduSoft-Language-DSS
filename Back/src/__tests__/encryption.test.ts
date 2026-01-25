@@ -316,15 +316,16 @@ describe("Encryption Utils", () => {
       const encrypted = encryptCardData(originalData);
       const decrypted = decryptCardData({
         encryptedCardNumber: encrypted.encryptedCardNumber,
-        encryptedCVV: encrypted.encryptedCVV,
         encryptedExpiry: encrypted.encryptedExpiry,
-        iv: encrypted.iv,
-        authTag: encrypted.authTag,
+        ivCardNumber: encrypted.ivCardNumber,
+        authTagCardNumber: encrypted.authTagCardNumber,
+        ivExpiry: encrypted.ivExpiry,
+        authTagExpiry: encrypted.authTagExpiry,
         integrityHash: encrypted.integrityHash,
+        lastFourDigits: encrypted.lastFourDigits,
       });
 
       expect(decrypted.cardNumber).toBe(originalData.cardNumber);
-      expect(decrypted.cvv).toBe(originalData.cvv);
       expect(decrypted.expiry).toBe(originalData.expiry);
     });
 
@@ -339,11 +340,13 @@ describe("Encryption Utils", () => {
       expect(() =>
         decryptCardData({
           encryptedCardNumber: encrypted.encryptedCardNumber,
-          encryptedCVV: encrypted.encryptedCVV,
           encryptedExpiry: encrypted.encryptedExpiry,
-          iv: encrypted.iv,
-          authTag: encrypted.authTag,
+          ivCardNumber: encrypted.ivCardNumber,
+          authTagCardNumber: encrypted.authTagCardNumber,
+          ivExpiry: encrypted.ivExpiry,
+          authTagExpiry: encrypted.authTagExpiry,
           integrityHash: "0".repeat(64), // Invalid hash
+          lastFourDigits: encrypted.lastFourDigits,
         })
       ).toThrow("Data integrity verification failed");
     });

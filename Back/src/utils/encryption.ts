@@ -363,17 +363,17 @@ export const encryptCardData = (cardData: {
   cardholderName: string;
 }): {
   encryptedCardNumber: string;
-  encryptedCVV: string;
   encryptedExpiry: string;
   cardholderName: string;
   lastFourDigits: string;
   cardBrand: string;
-  iv: string;
-  authTag: string;
+  ivCardNumber: string;
+  authTagCardNumber: string;
+  ivExpiry: string;
+  authTagExpiry: string;
   integrityHash: string;
 } => {
   // Generar un IV único para esta operación
-  const iv = generateIV();
   const key = getEncryptionKey();
   
   // Generar IVs separados para cada campo (mejor práctica de seguridad)
