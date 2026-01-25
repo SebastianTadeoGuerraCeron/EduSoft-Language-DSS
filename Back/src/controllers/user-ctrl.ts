@@ -3,25 +3,25 @@ import type { Request, Response } from "express";
 import { validateStrongPassword } from "../middleware/passwordValidation";
 import { transporter } from "../nodemailer";
 import {
-    comparePassword,
-    generateToken,
-    hashPassword,
-    isStrongPassword,
-    isValidEmail,
-    sanitizeInput,
+  comparePassword,
+  generateToken,
+  hashPassword,
+  isStrongPassword,
+  isValidEmail,
+  sanitizeInput,
 } from "../utils/security";
 import {
-    logRegistrationFailed,
-    logRegistrationSuccess,
-    logWeakPasswordAttempt,
+  logRegistrationFailed,
+  logRegistrationSuccess,
+  logWeakPasswordAttempt,
 } from "../utils/securityLogger";
 import {
-  logUserActivity,
-  logSecurityEvent,
   ActivityAction,
+  logSecurityEvent,
+  logUserActivity,
+  ResourceType,
   SecurityEvent,
   SecuritySeverity,
-  ResourceType,
 } from "./audit-ctrl";
 
 const prisma = new PrismaClient();
@@ -263,9 +263,17 @@ const loginUserCtrl = async (req: Request, res: Response) => {
       details: { role: user.role },
     });
 
+    // Enviar token como cookie httpOnly
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    });
+
     res.status(200).json({
+      success: true,
       message: "Login successful",
-      token,
       user: {
         id: user.id,
         username: user.username,
@@ -279,6 +287,25 @@ const loginUserCtrl = async (req: Request, res: Response) => {
     console.error("Error logging in:", error);
     res.status(500).json({ error: "Internal server error" });
     return;
+  }
+};
+
+const logoutUserCtrl = async (req: Request, res: Response) => {
+  try {
+    // Limpiar cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+  } catch (error) {
+    console.error("Error logging out:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -664,8 +691,9 @@ export {
   getUserProgress,
   getUserRanking,
   loginUserCtrl,
+  logoutUserCtrl,
   recoverPasswordCtrl,
   sendEmailCtrl,
-  updateProfileCtrl,
+  updateProfileCtrl
 };
 
