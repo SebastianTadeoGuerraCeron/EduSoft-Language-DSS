@@ -273,13 +273,14 @@ describe("Encryption Utils", () => {
       const result = encryptCardData(cardData);
 
       expect(result.encryptedCardNumber).toBeDefined();
-      expect(result.encryptedCVV).toBeDefined();
       expect(result.encryptedExpiry).toBeDefined();
       expect(result.cardholderName).toBe("John Doe");
       expect(result.lastFourDigits).toBe("1111");
       expect(result.cardBrand).toBe("VISA");
-      expect(result.iv).toBeDefined();
-      expect(result.authTag).toBeDefined();
+      expect(result.ivCardNumber).toBeDefined();
+      expect(result.authTagCardNumber).toBeDefined();
+      expect(result.ivExpiry).toBeDefined();
+      expect(result.authTagExpiry).toBeDefined();
       expect(result.integrityHash).toBeDefined();
     });
 
