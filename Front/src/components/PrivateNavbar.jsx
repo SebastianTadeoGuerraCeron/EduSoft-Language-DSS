@@ -106,14 +106,18 @@ const PrivateNavbar = () => {
               {link.dropdown ? (
                 // Dropdown for Create Content
                 <div className="relative">
-                  <button 
+                  <button
                     className="relative leading-[21px] font-medium px-3 py-2 rounded-lg transition-colors duration-150 flex items-center gap-2 text-[#397DA7] hover:text-[#1d7fc1] hover:bg-[#f7fafc]"
-                    onClick={() => setCreateContentDropdownOpen(!createContentDropdownOpen)}
-                    onBlur={() => setTimeout(() => setCreateContentDropdownOpen(false), 200)}
+                    onClick={() =>
+                      setCreateContentDropdownOpen(!createContentDropdownOpen)
+                    }
+                    onBlur={() =>
+                      setTimeout(() => setCreateContentDropdownOpen(false), 200)
+                    }
                   >
                     {link.label}
                     <svg
-                      className={`w-4 h-4 transition-transform duration-200 ${createContentDropdownOpen ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 transition-transform duration-200 ${createContentDropdownOpen ? "rotate-180" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -194,7 +198,7 @@ const PrivateNavbar = () => {
                     >
                       {item.label}
                     </Link>
-                  )
+                  ),
                 )}
               </div>
             )}
