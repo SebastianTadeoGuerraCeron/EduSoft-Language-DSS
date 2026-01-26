@@ -93,7 +93,6 @@ routerBilling.get("/plans", getPlansCtrl as express.RequestHandler);
 routerBilling.post(
   "/webhook",
   webhookRateLimiter as express.RequestHandler,
-  express.raw({ type: "application/json" }),
   webhookCtrl as express.RequestHandler
 );
 
