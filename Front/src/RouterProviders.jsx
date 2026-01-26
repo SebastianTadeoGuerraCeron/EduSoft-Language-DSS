@@ -42,12 +42,9 @@ const RouterProviders = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    // La autenticación se maneja por cookies HTTP-only
+    // El AuthContext verifica la sesión con el backend
+    setIsAuthenticated(true);
   }, []);
 
   return (

@@ -120,16 +120,6 @@ export default function LessonCreation() {
     setSuccess("");
 
     try {
-      // Debug: Verificar token en localStorage
-      const token = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-      console.log("=== DEBUG SUBMIT ===");
-      console.log("Token en localStorage:", token ? "✓ Existe" : "✗ NO existe");
-      console.log("User en localStorage:", storedUser ? "✓ Existe" : "✗ NO existe");
-      console.log("isAuthenticated:", isAuthenticated);
-      console.log("user object:", user);
-      console.log("formData being sent:", JSON.stringify(formData, null, 2));
-
       // Verificar autenticación
       if (!isAuthenticated || !user) {
         setError("You must be logged in to create a lesson");
@@ -198,8 +188,8 @@ export default function LessonCreation() {
               {
                 headers: {
                   "Content-Type": "multipart/form-data",
-                  Authorization: `Bearer ${token}`,
                 },
+                withCredentials: true,
               }
             );
           } catch (fileErr) {

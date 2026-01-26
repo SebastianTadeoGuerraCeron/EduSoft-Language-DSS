@@ -181,7 +181,6 @@ export default function StudentLesson({ lessonId, lesson, onProgressUpdate }) {
           <h3>Materials & Resources</h3>
           <LessonFilesManager
             lessonId={lessonId}
-            token={localStorage.getItem("token")}
             canUpload={false}
             canDelete={false}
           />

@@ -11,22 +11,18 @@ export const Progress = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-    const token = localStorage.getItem("token");
-    if (!storedUser || !storedUser.id) return;
+    if (!user || !user.id) return;
 
-    // Cargar historial de juegos
-    fetch(`${API_URL}/user/progress?userId=${storedUser.id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+    // Cargar historial de juegos (cookies se envían automáticamente)
+    fetch(`${API_URL}/user/progress?userId=${user.id}`, {
+      credentials: 'include',
     })
       .then((res) => res.json())
       .then((data) => setProgress({ history: data.history || [] }));
 
     // Cargar historial de exámenes
-    fetchExamStats(storedUser.id);
-  }, []);
+    fetchExamStats(user.id);
+  }, [user]);
 
   const fetchExamStats = async (userId) => {
     try {
