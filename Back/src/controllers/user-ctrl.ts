@@ -290,7 +290,7 @@ const loginUserCtrl = async (req: Request, res: Response) => {
   }
 };
 
-const logoutUserCtrl = async (req: Request, res: Response) => {
+const logoutUserCtrl = async (_req: Request, res: Response) => {
   try {
     // Limpiar cookie
     res.clearCookie("token", {
