@@ -15,7 +15,6 @@ export default function LessonFilesManager({
   lessonId,
   canUpload = false,
   canDelete = false,
-  token,
 }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +25,7 @@ export default function LessonFilesManager({
   // Load file list when mounting
   useEffect(() => {
     loadFiles();
-  }, [lessonId, token]);
+  }, [lessonId]);
 
   // Clear messages after 5 seconds
   useEffect(() => {
@@ -40,12 +39,6 @@ export default function LessonFilesManager({
    * Loads the list of files for a lesson from the backend
    */
   const loadFiles = async () => {
-    if (!token) {
-      setError("Not authorized");
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
@@ -57,6 +50,8 @@ export default function LessonFilesManager({
       if (err.response?.status === 404) {
         // No files yet
         setFiles([]);
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        setError("Not authorized");
       } else {
         setError(err.response?.data?.error || "Error loading files");
       }
@@ -88,7 +83,7 @@ export default function LessonFilesManager({
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       setSuccess(`${file.name} uploaded successfully`);
@@ -118,7 +113,7 @@ export default function LessonFilesManager({
         `/lessons/${lessonId}/download-file/${encodeURIComponent(fileName)}`,
         {
           responseType: "blob",
-        }
+        },
       );
 
       // Crear URL para descarga
@@ -154,7 +149,7 @@ export default function LessonFilesManager({
 
     try {
       await api.delete(
-        `/lessons/${lessonId}/files/${encodeURIComponent(fileName)}`
+        `/lessons/${lessonId}/files/${encodeURIComponent(fileName)}`,
       );
 
       setSuccess(`${fileName} deleted`);
@@ -170,7 +165,7 @@ export default function LessonFilesManager({
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const getFileIcon = (fileName) => {
@@ -204,10 +199,7 @@ export default function LessonFilesManager({
       {error && (
         <div className="alert alert-error" role="alert">
           {error}
-          <button
-            className="alert-close"
-            onClick={() => setError(null)}
-          >
+          <button className="alert-close" onClick={() => setError(null)}>
             ×
           </button>
         </div>
@@ -227,7 +219,7 @@ export default function LessonFilesManager({
               id="file-input"
               type="file"
               onChange={handleUpload}
-              disabled={uploading || !token}
+              disabled={uploading}
               accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mp3,.txt,.doc,.docx,.xls,.xlsx"
               className="file-input"
             />
@@ -254,9 +246,7 @@ export default function LessonFilesManager({
             {files.map((file) => (
               <div key={file.sha} className="file-item">
                 <div className="file-info">
-                  <span className="file-icon">
-                    {getFileIcon(file.name)}
-                  </span>
+                  <span className="file-icon">{getFileIcon(file.name)}</span>
                   <div className="file-details">
                     <div className="file-name">{file.name}</div>
                     <div className="file-meta">
@@ -289,8 +279,6 @@ export default function LessonFilesManager({
           </div>
         )}
       </div>
-
-
     </div>
   );
 }

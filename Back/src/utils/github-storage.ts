@@ -70,19 +70,7 @@ export const uploadFileToGitHub = async (options: UploadOptions) => {
       message: `Archivo ${fileName} subido exitosamente a GitHub`,
     };
   } catch (error) {
-    
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error name:", error.name);
-    }
-    
-    // Si es un error de Octokit, mostrar más detalles
-    if (error && typeof error === 'object' && 'status' in error) {
-      const octoError = error as any;
-      console.error("Status:", octoError.status);
-      console.error("Response:", octoError.response);
-    }
-    
+    console.error("Error uploading to GitHub:", error);
     throw new Error(
       `Error al subir archivo a GitHub: ${error instanceof Error ? error.message : "Error desconocido"}`
     );
