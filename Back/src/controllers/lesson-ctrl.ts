@@ -205,10 +205,24 @@ export const updateLessonCtrl = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Verificar que el usuario sea el creador
+    // Obtener información del usuario
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(401).json({ error: "User not found" });
+      return;
+    }
+
+    // Verificar que la lección existe
     const lesson = await prisma.lesson.findUnique({ where: { id } });
-    if (!lesson || lesson.createdBy !== userId) {
-      res.status(403).json({ error: "Forbidden" });
+    if (!lesson) {
+      res.status(404).json({ error: "Lesson not found" });
+      return;
+    }
+
+    // Permitir edición solo si es el creador o ADMIN
+    const canEdit = lesson.createdBy === userId || user.role === "ADMIN";
+    if (!canEdit) {
+      res.status(403).json({ error: "Forbidden: Only the lesson creator or admin can edit" });
       return;
     }
 
@@ -303,10 +317,24 @@ export const deleteLessonCtrl = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Verificar que el usuario sea el creador
+    // Obtener información del usuario
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(401).json({ error: "User not found" });
+      return;
+    }
+
+    // Verificar que la lección existe
     const lesson = await prisma.lesson.findUnique({ where: { id } });
-    if (!lesson || lesson.createdBy !== userId) {
-      res.status(403).json({ error: "Forbidden" });
+    if (!lesson) {
+      res.status(404).json({ error: "Lesson not found" });
+      return;
+    }
+
+    // Permitir eliminación solo si es el creador o ADMIN
+    const canDelete = lesson.createdBy === userId || user.role === "ADMIN";
+    if (!canDelete) {
+      res.status(403).json({ error: "Forbidden: Only the lesson creator or admin can delete" });
       return;
     }
 
@@ -626,6 +654,45 @@ export const getStudentLessonsCtrl = async (req: AuthRequest, res: Response) => 
     res.json({ lessons: assignments.map((a) => a.lesson) });
   } catch (error) {
     console.error("Error fetching student lessons:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Obtener todas las lecciones creadas por el tutor actual
+ * GET /lessons/tutor/my-lessons
+ */
+export const getTutorLessonsCtrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const lessons = await prisma.lesson.findMany({
+      where: { createdBy: userId },
+      include: {
+        tutor: {
+          select: { id: true, username: true },
+        },
+        modules: {
+          orderBy: { orden: "asc" },
+        },
+        _count: {
+          select: {
+            assignments: true,
+            progress: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ lessons });
+  } catch (error) {
+    console.error("Error fetching tutor lessons:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

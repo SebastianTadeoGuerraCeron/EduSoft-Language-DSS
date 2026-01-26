@@ -102,9 +102,7 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
       setError("");
       setSuccess("");
 
-      const token = localStorage.getItem("token");
-
-      // Enviar actualización al backend
+      // Enviar actualización al backend (cookies se envían automáticamente con withCredentials)
       const response = await axios.put(
         `${API_URL}/lessons/${lessonId}`,
         {
@@ -112,9 +110,9 @@ export default function LessonEdit({ lessonId, lesson, onClose, onUpdate }) {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          withCredentials: true, // Enviar cookies automáticamente
         }
       );
 

@@ -10,6 +10,7 @@ import {
   updateLessonProgressCtrl,
   getStudentLessonProgressCtrl,
   getStudentLessonsCtrl,
+  getTutorLessonsCtrl,
 } from "../controllers/lesson-ctrl";
 import {
   uploadLessonFileCtrl,
@@ -86,6 +87,17 @@ routerLesson.get(
   "/student/my-lessons",
   authenticate as express.RequestHandler,
   getStudentLessonsCtrl as express.RequestHandler
+);
+
+/**
+ * GET /lessons/tutor/my-lessons
+ * Obtener todas las lecciones creadas por el tutor
+ */
+routerLesson.get(
+  "/tutor/my-lessons",
+  authenticate as express.RequestHandler,
+  authorize("TUTOR") as express.RequestHandler,
+  getTutorLessonsCtrl as express.RequestHandler
 );
 
 /**

@@ -84,7 +84,14 @@ export const uploadLessonFileCtrl = [
         return;
       }
 
-      // Verificar que el usuario es el tutor de la lección
+      // Obtener información del usuario
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        res.status(401).json({ error: "User not found" });
+        return;
+      }
+
+      // Verificar que la lección existe
       const lesson = await prisma.lesson.findUnique({
         where: { id: lessonId },
       });
@@ -94,8 +101,10 @@ export const uploadLessonFileCtrl = [
         return;
       }
 
-      if (lesson.createdBy !== userId) {
-        res.status(403).json({ error: "Only lesson creator can upload files" });
+      // Permitir subir archivos solo si es el creador o ADMIN
+      const canUpload = lesson.createdBy === userId || user.role === "ADMIN";
+      if (!canUpload) {
+        res.status(403).json({ error: "Only the lesson creator or admin can upload files" });
         return;
       }
 

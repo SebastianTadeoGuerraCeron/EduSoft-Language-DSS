@@ -27,10 +27,12 @@ export default function TutorLessons({ userId }) {
     try {
       setLoading(true);
       setError("");
-      const data = await getAllLessons();
-      // Filtrar solo lecciones creadas por el tutor actual
-      const myLessons = data.lessons.filter((l) => l.createdBy === currentUserId);
-      setLessons(myLessons);
+      // Usar el endpoint específico del tutor con cookies
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/lessons/tutor/my-lessons`, {
+        credentials: 'include', // Enviar cookies automáticamente
+      });
+      const data = await response.json();
+      setLessons(data.lessons || []);
     } catch (err) {
       setError("Error loading lessons");
     } finally {
