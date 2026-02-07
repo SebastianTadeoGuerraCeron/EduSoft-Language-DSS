@@ -40,6 +40,6 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
-    "stripe": "^20.1.0"
+    "stripe": "^20.2.0"
   }
 }
