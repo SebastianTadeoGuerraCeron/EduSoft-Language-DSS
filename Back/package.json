@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.19.2",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
